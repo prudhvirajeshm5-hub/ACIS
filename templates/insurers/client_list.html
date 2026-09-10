@@ -1,0 +1,36 @@
+{% extends "base/base.html" %}
+{% block page_title %}Clients{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Clients</h1><p>Insurance companies ACIS performs inspections for, and their branches.</p></div>
+  <div style="display:flex;gap:8px;">
+    {% if perms.insurers.add_insurancebranch %}<a class="btn btn-ghost" href="{% url 'insurers:create_branch' %}">+ Add Branch</a>{% endif %}
+    {% if perms.insurers.add_insurancecompany %}<a class="btn btn-primary" href="{% url 'insurers:create' %}">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+      Add Client</a>{% endif %}
+  </div>
+</div>
+
+{% for company in companies %}
+<div class="card">
+  <h3>{{ company.name }} <span style="font-weight:500;color:var(--ink-faint);">· {{ company.code }}</span></h3>
+  <p style="font-size:12.5px;color:var(--ink-soft);margin:-6px 0 12px;">
+    {{ company.contact_email|default:"No contact email" }}{% if company.contact_phone %} · {{ company.contact_phone }}{% endif %}
+  </p>
+  {% if company.branches.all %}
+  <table>
+    <thead><tr><th>Branch</th><th>District</th><th>Address</th></tr></thead>
+    <tbody>
+      {% for branch in company.branches.all %}
+      <tr><td>{{ branch.name }}</td><td>{{ branch.district }}</td><td>{{ branch.address|default:"—" }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p style="color:var(--ink-faint);font-size:12.5px;">No branches added yet.</p>
+  {% endif %}
+</div>
+{% empty %}
+<p style="color:var(--ink-faint);">No clients added yet.</p>
+{% endfor %}
+{% endblock %}

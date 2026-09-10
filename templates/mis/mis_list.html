@@ -1,0 +1,67 @@
+{% extends "base/base.html" %}
+{% block page_title %}All MIS{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>All MIS</h1><p>{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}</p></div>
+  {% if perms.mis.add_mis %}<a class="btn btn-primary" href="{% url 'mis:create' %}">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    Create MIS</a>{% endif %}
+</div>
+
+<form method="get" class="toolbar">
+  <div class="search-box" style="flex:1;">
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Search by MIS ID, customer, mobile, vehicle number...">
+  </div>
+  <a class="chip {% if not request.GET.inspection_stage %}active{% endif %}" href="?">All</a>
+  <a class="chip {% if request.GET.inspection_stage == 'pending' %}active{% endif %}" href="?inspection_stage=pending">Pending</a>
+  <a class="chip {% if request.GET.inspection_stage == 'assigned' %}active{% endif %}" href="?inspection_stage=assigned">Assigned</a>
+  <a class="chip {% if request.GET.inspection_stage == 'completed' %}active{% endif %}" href="?inspection_stage=completed">Completed</a>
+  <button class="chip" type="submit">Search</button>
+</form>
+
+<table>
+  <thead><tr><th>MIS ID</th><th>Customer</th><th>Vehicle</th><th>Insurer / Branch</th><th>Field Exec.</th><th>Inspection</th><th>QC</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for mis in mis_records %}
+    <tr>
+      <td><div class="id-cell">{{ mis.mis_number }}</div><div class="sub-cell">{{ mis.mis_date }}</div></td>
+      <td>{{ mis.customer.name }}<div class="sub-cell">{{ mis.customer.mobile }}</div></td>
+      <td class="mono">{{ mis.vehicle.registration_number }}<div class="sub-cell" style="font-family:'Public Sans';">{{ mis.vehicle.make }} {{ mis.vehicle.model }}</div></td>
+      <td>{{ mis.insurance_company }}<div class="sub-cell">{{ mis.branch }}</div></td>
+      <td>{{ mis.field_executive|default:"—" }}</td>
+      <td>
+        {% if mis.inspection_stage == "completed" %}<span class="badge b-good">{{ mis.get_inspection_stage_display }}</span>
+        {% elif mis.inspection_stage == "in_progress" %}<span class="badge b-info">{{ mis.get_inspection_stage_display }}</span>
+        {% elif mis.inspection_stage == "assigned" %}<span class="badge b-warn">{{ mis.get_inspection_stage_display }}</span>
+        {% else %}<span class="badge b-neutral">{{ mis.get_inspection_stage_display }}</span>{% endif %}
+      </td>
+      <td>
+        {% if mis.qc_stage == "approved" %}<span class="badge b-good">{{ mis.get_qc_stage_display }}</span>
+        {% elif mis.qc_stage == "rejected" %}<span class="badge b-bad">{{ mis.get_qc_stage_display }}</span>
+        {% elif mis.qc_stage == "correction" %}<span class="badge b-warn">{{ mis.get_qc_stage_display }}</span>
+        {% elif mis.qc_stage == "pending" %}<span class="badge b-info">{{ mis.get_qc_stage_display }}</span>
+        {% else %}<span class="badge b-neutral">{{ mis.get_qc_stage_display }}</span>{% endif %}
+      </td>
+      <td>
+        <div class="row-actions">
+          <a class="link-btn" href="{% url 'mis:detail' mis.pk %}">View</a>
+          {% if mis.inspection.pk %}<a class="link-btn" href="{% url 'inspections:workspace' mis.inspection.pk %}">Inspect</a>{% endif %}
+          {% if mis.qc_stage == "pending" and perms.qc.add_qcreview %}<a class="link-btn" href="{% url 'qc:review' mis.inspection.pk %}">QC</a>{% endif %}
+        </div>
+      </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="8" style="text-align:center;color:var(--ink-faint);padding:30px;">No MIS records match your filters.</td></tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+{% if is_paginated %}
+<div style="display:flex;gap:10px;margin-top:14px;">
+  {% if page_obj.has_previous %}<a class="btn btn-ghost" href="?page={{ page_obj.previous_page_number }}">Previous</a>{% endif %}
+  <span style="align-self:center;font-size:12.5px;color:var(--ink-faint);">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+  {% if page_obj.has_next %}<a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
+</div>
+{% endif %}
+{% endblock %}

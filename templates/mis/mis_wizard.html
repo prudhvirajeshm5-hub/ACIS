@@ -1,0 +1,32 @@
+{% extends "base/base.html" %}
+{% block page_title %}Create MIS{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Create MIS</h1><p>Step {{ step }} of {{ total_steps }} — {{ current_step_title }}</p></div></div>
+
+<div class="stepper">
+  {% for n, title in step_titles.items %}
+    <div class="step {% if n < step %}done{% elif n == step %}current{% endif %}">
+      <div class="circ">{% if n < step %}✓{% else %}{{ n }}{% endif %}</div><div class="lbl">{{ title }}</div>
+    </div>
+    {% if not forloop.last %}<div class="connector"></div>{% endif %}
+  {% endfor %}
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+  {% csrf_token %}
+  <div class="form-grid">
+    {% for field in form %}
+      <div class="field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="step-nav">
+    {% if step > 1 %}<a class="btn btn-ghost" href="{% url 'mis:create' step|add:'-1' %}">Back</a>{% else %}<span></span>{% endif %}
+    <button type="submit" class="btn btn-primary">{% if step == total_steps %}Create MIS{% else %}Continue{% endif %}</button>
+  </div>
+</form>
+{% endblock %}

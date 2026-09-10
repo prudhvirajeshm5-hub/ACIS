@@ -1,0 +1,19 @@
+{% extends "base/base.html" %}
+{% block page_title %}Add Client{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Add Client</h1><p>Register a new insurance company ACIS will perform inspections for.</p></div></div>
+<form method="post" class="form-card">
+  {% csrf_token %}
+  <div class="form-grid">
+    {% for field in form %}
+      <div class="field"><label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+      {{ field }}
+      {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}</div>
+    {% endfor %}
+  </div>
+  <div class="step-nav">
+    <a class="btn btn-ghost" href="{% url 'insurers:list' %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Add Client</button>
+  </div>
+</form>
+{% endblock %}

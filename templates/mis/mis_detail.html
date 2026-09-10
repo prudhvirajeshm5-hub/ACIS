@@ -1,0 +1,26 @@
+{% extends "base/base.html" %}
+{% block page_title %}{{ mis.mis_number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>{{ mis.mis_number }} <span class="badge b-info">{{ mis.get_inspection_stage_display }}</span> <span class="badge b-neutral">{{ mis.get_qc_stage_display }}</span></h1>
+  <p>Created {{ mis.created_at|date:"d M Y" }} by {{ mis.created_by|default:"—" }}</p></div>
+  {% if mis.inspection.pk %}<a class="btn btn-primary" href="{% url 'inspections:workspace' mis.inspection.pk %}">Open Inspection Workspace</a>{% endif %}
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+  <div class="card"><h3>Customer</h3>
+    <p>{{ mis.customer.name }}<br>{{ mis.customer.mobile }}<br>{{ mis.customer.email }}</p></div>
+  <div class="card"><h3>Vehicle</h3>
+    <p>{{ mis.vehicle.registration_number }}<br>{{ mis.vehicle.make }} {{ mis.vehicle.model }}<br>{{ mis.vehicle.manufacturing_year }} · {{ mis.vehicle.fuel_type }}</p></div>
+  <div class="card"><h3>Insurance</h3>
+    <p>{{ mis.insurance_company }}<br>{{ mis.branch }}<br>Ref: {{ mis.insurance_reference_number|default:"—" }}</p></div>
+</div>
+
+<div class="card">
+  <h3>Assignment</h3>
+  <p>Field Executive: {{ mis.field_executive|default:"Not yet assigned" }}<br>
+  Scheduled: {{ mis.scheduled_date|default:"—" }}<br>
+  Location: {{ mis.inspection_location|default:"—" }}<br>
+  Priority: {{ mis.get_priority_display }}</p>
+</div>
+{% endblock %}

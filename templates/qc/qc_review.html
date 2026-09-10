@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+{% block page_title %}QC Review — {{ mis.mis_number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>QC Review — {{ mis.mis_number }}</h1><p>Review inspection evidence and record a decision.</p></div>
+  <a class="btn btn-ghost" href="{% url 'mis:list' %}">← Back to list</a>
+</div>
+
+<div class="qc-grid">
+  <div class="card">
+    <h3>Inspection Summary</h3>
+    <p><b>Customer:</b> {{ mis.customer.name }}<br>
+       <b>Vehicle:</b> {{ mis.vehicle.registration_number }} — {{ mis.vehicle.make }} {{ mis.vehicle.model }}<br>
+       <b>Insurer / Branch:</b> {{ mis.insurance_company }}, {{ mis.branch }}<br>
+       <b>Field Executive:</b> {{ inspection.field_executive|default:"—" }}<br>
+       <b>Body checklist:</b> {{ inspection.item_results.count }} item(s), {{ flagged_items|length }} flagged<br>
+       <b>Glass inspection:</b> {{ inspection.glass_results.count }} item(s), {{ flagged_glass|length }} flagged<br>
+       <b>Photos / Videos:</b> {{ inspection.photos.count }} photos, {{ inspection.videos.count }} videos</p>
+
+    {% if flagged_items or flagged_glass %}
+    <h3 style="margin-top:16px;">Flagged Items</h3>
+    {% for r in flagged_items %}<div class="doc-row"><span class="name">{{ r.item.name }}</span><span class="badge b-bad">{{ r.condition.name }}</span></div>{% endfor %}
+    {% for r in flagged_glass %}<div class="doc-row"><span class="name">{{ r.item.name }}</span><span class="badge b-bad">{{ r.condition.name }}</span></div>{% endfor %}
+    {% endif %}
+
+    <a class="btn btn-ghost" style="margin-top:14px;" href="{% url 'inspections:workspace' inspection.pk %}">Open full inspection workspace →</a>
+  </div>
+
+  <div class="card">
+    <h3>QC Decision</h3>
+    <form method="post">
+      {% csrf_token %}
+      {% for choice in form.decision %}
+        <label class="decision-opt">{{ choice.tag }}
+          <div><div class="dt">{{ choice.choice_label }}</div></div>
+        </label>
+      {% endfor %}
+      <div class="field" style="margin-top:12px;">
+        <label for="{{ form.remarks.id_for_label }}">QC Remarks</label>
+        {{ form.remarks }}
+      </div>
+      <button class="btn btn-primary" style="width:100%;" type="submit">Submit QC Decision</button>
+    </form>
+
+    {% if previous_reviews %}
+    <h3 style="margin-top:18px;">Previous Reviews</h3>
+    {% for r in previous_reviews %}
+      <div style="font-size:12.5px;padding:7px 0;border-bottom:1px solid var(--paper);">
+        {{ r.get_decision_display }} — {{ r.qc_executive }} · {{ r.reviewed_at|date:"d M, H:i" }}
+      </div>
+    {% endfor %}
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

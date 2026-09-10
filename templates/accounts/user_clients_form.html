@@ -1,0 +1,17 @@
+{% extends "base/base.html" %}
+{% block page_title %}Assign Clients{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Assign Clients — {{ target_user.username }}</h1>
+<p>{% if target_user.role == "mis_operator" %}This restricts which insurance companies {{ target_user.username }} can see and work with.{% else %}Note: client-scoping is currently only enforced for the MIS Operator role — {{ target_user.get_role_display }} will still see all clients regardless of this list.{% endif %}</p></div></div>
+<form method="post" class="form-card">
+  {% csrf_token %}
+  <div class="field">
+    <label for="{{ form.assigned_clients.id_for_label }}">{{ form.assigned_clients.label }}</label>
+    {{ form.assigned_clients }}
+  </div>
+  <div class="step-nav">
+    <a class="btn btn-ghost" href="{% url 'accounts:user_list' %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </div>
+</form>
+{% endblock %}

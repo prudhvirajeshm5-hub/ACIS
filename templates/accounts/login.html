@@ -1,0 +1,43 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><title>Sign in — ACIS</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{% static 'css/app.css' %}">
+</head>
+<body>
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-mark"><div class="sq">A</div><div class="name">ACIS</div></div>
+    <p class="login-sub">Insurance Inspection &amp; MIS Management System</p>
+
+    {% if form.non_field_errors %}
+      <div class="msg error" style="margin-bottom:16px;">{{ form.non_field_errors|striptags }}</div>
+    {% endif %}
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      <div class="field">
+        <label for="{{ form.username.id_for_label }}">Username or email</label>
+        {{ form.username }}
+      </div>
+      <div class="field">
+        <label for="{{ form.password.id_for_label }}">Password</label>
+        {{ form.password }}
+      </div>
+      <div class="field" style="display:flex;align-items:center;gap:7px;margin-bottom:20px;">
+        {{ form.remember_me }}
+        <label style="margin:0;font-weight:500;color:var(--ink-soft);font-size:12.5px;" for="{{ form.remember_me.id_for_label }}">Remember me on this device</label>
+      </div>
+      <button type="submit" class="btn btn-primary btn-block">Sign in</button>
+    </form>
+    <div class="login-foot">
+      <a href="{% url 'accounts:password_reset' %}">Forgot password?</a>
+      <span class="mono" style="color:var(--ink-faint);">v1.0</span>
+    </div>
+  </div>
+</div>
+</body>
+</html>

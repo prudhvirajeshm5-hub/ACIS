@@ -1,0 +1,37 @@
+{% extends "base/base.html" %}
+{% block page_title %}Users & Access{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Users &amp; Access</h1><p>{{ users|length }} user(s)</p></div>
+  <a class="btn btn-primary" href="{% url 'accounts:create_user' %}">
+    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
+    Add User</a>
+</div>
+<table>
+  <thead><tr><th>Username</th><th>Full name</th><th>Role</th><th>Assigned Clients</th><th>Status</th><th>Last login</th><th>Actions</th></tr></thead>
+  <tbody>
+    {% for u in users %}
+    <tr>
+      <td class="mono">{{ u.username }}</td>
+      <td>{{ u.get_full_name }}</td>
+      <td>{{ u.role_label }}</td>
+      <td>
+        {% if u.role == "mis_operator" %}
+          {% with clients=u.assigned_clients.all %}
+            {% if clients %}{% for c in clients %}<span class="badge b-neutral">{{ c.code }}</span> {% endfor %}
+            {% else %}<span class="badge b-warn">None assigned</span>{% endif %}
+          {% endwith %}
+        {% else %}<span style="color:var(--ink-faint);">— all clients —</span>{% endif %}
+      </td>
+      <td>{% if u.is_active %}<span class="badge b-good">Active</span>{% else %}<span class="badge b-bad">Inactive</span>{% endif %}{% if u.is_locked %} <span class="badge b-warn">Locked</span>{% endif %}</td>
+      <td>{{ u.last_login|date:"d M Y, H:i"|default:"Never" }}</td>
+      <td>
+        <a class="link-btn" href="{% url 'accounts:manage_user_clients' u.pk %}">Clients</a>
+        <form method="post" action="{% url 'accounts:admin_reset_password' u.pk %}" style="display:inline;">{% csrf_token %}<button class="link-btn" type="submit">Reset password</button></form>
+        <form method="post" action="{% url 'accounts:toggle_user_active' u.pk %}" style="display:inline;">{% csrf_token %}<button class="link-btn" type="submit">{% if u.is_active %}Deactivate{% else %}Activate{% endif %}</button></form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

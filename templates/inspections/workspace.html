@@ -1,0 +1,158 @@
+{% extends "base/base.html" %}
+{% load inspection_extras %}
+{% block page_title %}Inspection — {{ mis.mis_number }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ mis.mis_number }} <span class="badge b-info">{{ mis.get_inspection_stage_display }}</span></h1>
+    <p>{{ mis.customer.name }} · {{ mis.vehicle.registration_number }} ({{ mis.vehicle.make }} {{ mis.vehicle.model }}) · {{ mis.insurance_company }} · Field Exec: {{ inspection.field_executive|default:"—" }}</p>
+  </div>
+  <a class="btn btn-ghost" href="{% url 'mis:list' %}">← Back to list</a>
+</div>
+
+<div class="tabbar">
+  {% for key, label in tabs %}
+    <a class="tabbtn {% if active_tab == key %}active{% endif %}" href="?tab={{ key }}">{{ label }}</a>
+  {% endfor %}
+</div>
+
+{% if active_tab == "checklist" %}
+  <form method="post" action="{% url 'inspections:save_checklist' inspection.pk %}">
+    {% csrf_token %}
+    <div class="checklist-grid">
+      {% for item in checklist_items %}
+        {% with result=results_by_item|dict_get:item.id %}
+        <div class="check-row">
+          <div class="part">{{ item.name }}</div>
+          <select name="item_{{ item.id }}">
+            {% for c in condition_options %}
+              <option value="{{ c.id }}" {% if result.condition_id == c.id %}selected{% elif not result and c.is_positive %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endwith %}
+      {% empty %}
+        <p style="color:var(--ink-faint);">No inspection items configured yet — add them under Masters.</p>
+      {% endfor %}
+    </div>
+    <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Checklist</button></div>
+  </form>
+
+{% elif active_tab == "glass" %}
+  <form method="post" action="{% url 'inspections:save_glass' inspection.pk %}">
+    {% csrf_token %}
+    <div class="checklist-grid">
+      {% for item in glass_items %}
+        {% with result=results_by_item|dict_get:item.id %}
+        <div class="check-row">
+          <div class="part">{{ item.name }}</div>
+          <select name="item_{{ item.id }}">
+            {% for c in condition_options %}
+              <option value="{{ c.id }}" {% if result.condition_id == c.id %}selected{% elif not result and c.is_positive %}selected{% endif %}>{{ c.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Glass Inspection</button></div>
+  </form>
+
+{% elif active_tab == "accessories" %}
+  <form method="post" action="{% url 'inspections:save_accessories' inspection.pk %}">
+    {% csrf_token %}
+    <div class="checklist-grid">
+      {% for item in accessory_items %}
+        {% with result=results_by_item|dict_get:item.id %}
+        <div class="check-row">
+          <div class="part">{{ item.name }}</div>
+          <label style="display:flex;align-items:center;gap:6px;margin:0;">
+            <input type="checkbox" name="present_{{ item.id }}" {% if result.present or not result %}checked{% endif %} style="width:auto;"> Present
+          </label>
+        </div>
+        {% endwith %}
+      {% endfor %}
+    </div>
+    <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Accessories</button></div>
+  </form>
+
+{% elif active_tab == "photos" %}
+  <div class="upload-box">
+    <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      {% csrf_token %}
+      <select name="category">{% for value, label in photo_categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
+      <input type="file" name="file" accept="image/*" required style="width:auto;">
+      <button class="btn btn-primary" type="submit">Upload Photo</button>
+    </form>
+  </div>
+  <div class="media-grid">
+    {% for p in photos %}
+      <div class="media-card">
+        <div class="media-thumb"><img src="{{ p.file.url }}" alt="{{ p.category }}"></div>
+        <div class="media-info"><div class="cat">{{ p.get_category_display }}</div><div class="meta">{{ p.uploaded_by }} · {{ p.uploaded_at|date:"d M, H:i" }}</div></div>
+      </div>
+    {% empty %}<p style="color:var(--ink-faint);">No photos uploaded yet.</p>{% endfor %}
+  </div>
+
+{% elif active_tab == "videos" %}
+  <div class="upload-box">
+    <form method="post" action="{% url 'inspections:upload_video' inspection.pk %}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">
+      {% csrf_token %}
+      <select name="category">{% for c in video_categories %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select>
+      <input type="file" name="file" accept="video/mp4,video/quicktime,video/webm" required style="width:auto;">
+      <button class="btn btn-primary" type="submit">Upload Video</button>
+    </form>
+  </div>
+  <div class="media-grid">
+    {% for v in videos %}
+      <div class="media-card">
+        <div class="media-thumb">
+          {% if v.thumbnail %}<img src="{{ v.thumbnail.url }}">{% else %}<video src="{{ v.file.url }}" muted></video>{% endif %}
+        </div>
+        <div class="media-info"><div class="cat">{{ v.category.name }}</div>
+          <div class="meta">{{ v.get_processing_status_display }} {% if v.duration_seconds %}· {{ v.duration_seconds }}s{% endif %}</div></div>
+      </div>
+    {% empty %}<p style="color:var(--ink-faint);">No videos uploaded yet.</p>{% endfor %}
+  </div>
+
+{% elif active_tab == "documents" %}
+  {% for dtype, doc in documents %}
+    <div class="doc-row">
+      <div class="name">{{ dtype.label }}</div>
+      {% if doc.verified %}<span class="badge b-good">Verified</span>{% else %}<span class="badge b-warn">Pending</span>{% endif %}
+      <form method="post" action="{% url 'inspections:toggle_document' inspection.pk dtype.value %}">
+        {% csrf_token %}<button class="link-btn" type="submit">{% if doc.verified %}Unverify{% else %}Mark Verified{% endif %}</button>
+      </form>
+    </div>
+  {% endfor %}
+
+{% elif active_tab == "previous" %}
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;">
+    {% if previous_insurance %}
+    <div class="card"><div style="font-size:11px;color:var(--ink-faint);">PREVIOUS INSURER</div><div style="font-weight:700;">{{ previous_insurance.previous_insurer|default:"—" }}</div></div>
+    <div class="card"><div style="font-size:11px;color:var(--ink-faint);">POLICY NUMBER</div><div style="font-weight:700;">{{ previous_insurance.policy_number|default:"—" }}</div></div>
+    <div class="card"><div style="font-size:11px;color:var(--ink-faint);">PREVIOUS CLAIM</div><div style="font-weight:700;">{{ previous_insurance.had_previous_claim|yesno:"Yes,No" }}</div></div>
+    {% else %}
+    <p style="color:var(--ink-faint);">No previous insurance details recorded yet.</p>
+    {% endif %}
+  </div>
+
+{% elif active_tab == "timeline" %}
+  <div class="timeline">
+    {% for t in timeline %}
+      <div class="tl-item"><div class="tt">{{ t.changed_at|date:"h:i A" }}</div><div class="tx">{{ t.event }}{% if t.changed_by %} — {{ t.changed_by }}{% endif %}</div></div>
+    {% empty %}<p style="color:var(--ink-faint);">No timeline events yet.</p>{% endfor %}
+  </div>
+{% endif %}
+
+{% if perms.inspections.submit_inspection %}
+<div style="display:flex;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);">
+  <form method="post" action="{% url 'inspections:submit' inspection.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-primary" type="submit" {% if inspection.is_submitted %}disabled{% endif %}>
+      {% if inspection.is_submitted %}Already Submitted{% else %}Submit Inspection for QC{% endif %}
+    </button>
+  </form>
+</div>
+{% endif %}
+{% endblock %}
