@@ -49,10 +49,25 @@ have, so they're deliberately stubbed rather than faked:
 
 - **Billing** — `Payment`/`Invoice` models exist as placeholders; real
   invoicing/GST/gateway logic needs your actual billing rules.
-- **PDF report generation** — `weasyprint` is in requirements and the
-  video-evidence-with-QR-code design is documented in
-  `apps/inspections/viewsets.py`, but the report template itself isn't
-  built. This is a half-day task once you tell me your letterhead/layout.
+- **PDF report generation** — implemented. `apps/inspections/services.generate_report()`
+  renders `templates/inspections/report_pdf.html` via WeasyPrint, embeds
+  photos directly from disk, and includes a QR code + permanent
+  login-required link per video (`apps.inspections.views.view_video`) so
+  video evidence is reachable from the printed/exported report without
+  embedding the video file itself. Reports are versioned and never
+  overwritten (`InspectionReport`). Triggered from the MIS detail page, the
+  inspection workspace, and the QC review screen.
+
+  **WeasyPrint needs system libraries beyond `pip install`** — on macOS:
+  ```bash
+  brew install pango
+  ```
+  On Debian/Ubuntu (already handled in the Dockerfile for prod):
+  ```bash
+  apt-get install libpango-1.0-0 libpangocairo-1.0-0
+  ```
+  If those aren't installed, "Generate Report" shows an error message
+  rather than crashing the request.
 - **Video transcoding/thumbnailing** — `apps/inspections/tasks.py` has the
   Celery task wired up with a clear `# TODO` for `ffmpeg-python`/
   `moviepy`; I didn't pick a transcoding approach for you.

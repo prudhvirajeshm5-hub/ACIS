@@ -147,16 +147,23 @@ class InspectionDocument(UUIDModel, TimeStampedModel):
         constraints = [models.UniqueConstraint(fields=["inspection", "document_type"], name="uniq_doctype_per_inspection")]
 
 
+class PhotoCategory(models.TextChoices):
+    FRONT = "front", "Front"
+    REAR = "rear", "Rear"
+    LEFT = "left", "Left"
+    RIGHT = "right", "Right"
+    INTERIOR = "interior", "Interior"
+    ENGINE = "engine", "Engine"
+    CHASSIS = "chassis", "Chassis"
+    ODOMETER = "odometer", "Odometer"
+    DOCUMENTS = "documents", "Documents"
+    DAMAGE = "damage", "Damage"
+    OTHER = "other", "Other"
+
+
 class InspectionPhoto(UUIDModel):
-    """Category is a configurable master (see masters.PhotoCategoryMaster),
-    not a hard-coded choices list — mirrors the checklist/glass/accessory/
-    video pattern used elsewhere so the 14-slot bulk photo checklist (plus
-    the free-form 'Additional Photos' slot) can be edited under Masters
-    without a code change. Mandatory slots hold exactly one photo per
-    inspection (re-uploading replaces it); non-mandatory slots allow up to
-    `category.max_count` photos instead."""
     inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name="photos")
-    category = models.ForeignKey("masters.PhotoCategoryMaster", on_delete=models.PROTECT, related_name="photos")
+    category = models.CharField(max_length=20, choices=PhotoCategory.choices)
     original_filename = models.CharField(max_length=255)
     file = models.ImageField(upload_to=photo_upload_path, validators=[validate_photo_file])
     file_size = models.PositiveIntegerField(help_text="Bytes")
@@ -234,8 +241,8 @@ class InspectionVideo(UUIDModel):
             self.original_filename = os.path.basename(self.file.name)
         super().save(*args, **kwargs)
         if self.processing_status == VideoProcessingStatus.UPLOADED:
-            from .tasks import process_inspection_video
-            process_inspection_video.delay(str(self.id))
+            from .tasks import run_video_processing
+            run_video_processing(str(self.id))
 
 
 class InspectionStatusHistory(UUIDModel):
@@ -252,3 +259,28 @@ class InspectionStatusHistory(UUIDModel):
 
     def __str__(self):
         return f"{self.inspection} — {self.event}"
+
+
+def report_upload_path(instance, filename):
+    return f"inspections/{instance.inspection.mis.mis_number}/reports/v{instance.version}.pdf"
+
+
+class InspectionReport(UUIDModel):
+    """
+    One row per PDF generation. Never overwritten — regenerating creates a
+    new version (spec: "Report version history" / ReportVersion), so a
+    report that was already shared with an insurer stays retrievable even
+    after later corrections.
+    """
+    inspection = models.ForeignKey(Inspection, on_delete=models.CASCADE, related_name="reports")
+    version = models.PositiveSmallIntegerField()
+    pdf = models.FileField(upload_to=report_upload_path)
+    generated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT)
+    generated_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-version"]
+        constraints = [models.UniqueConstraint(fields=["inspection", "version"], name="uniq_report_version")]
+
+    def __str__(self):
+        return f"{self.inspection.mis.mis_number} report v{self.version}"

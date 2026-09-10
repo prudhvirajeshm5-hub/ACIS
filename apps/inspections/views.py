@@ -5,16 +5,16 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from apps.audit.utils import log_action
 from apps.masters.models import (
-    AccessoryMaster, ConditionOption, GlassItemMaster, InspectionItemMaster,
-    PhotoCategoryMaster, VideoCategoryMaster,
+    AccessoryMaster, ConditionOption, GlassItemMaster, InspectionItemMaster, VideoCategoryMaster,
 )
 
 from .models import (
     DocumentType, Inspection, InspectionAccessoryResult, InspectionDocument,
-    InspectionGlassResult, InspectionItemResult,
+    InspectionGlassResult, InspectionItemResult, PhotoCategory,
 )
-from .services import add_video, bulk_save_checklist, bulk_upload_photos, submit_inspection
+from .services import add_photo, add_video, bulk_save_checklist, submit_inspection
 
 
 def _get_inspection(pk):
@@ -39,6 +39,7 @@ def workspace(request, pk):
             ("previous", "Previous Insurance"), ("timeline", "Timeline"),
         ],
         "condition_options": ConditionOption.objects.filter(active=True),
+        "photo_categories": PhotoCategory.choices,
         "document_types": DocumentType.choices,
         "video_categories": VideoCategoryMaster.objects.filter(active=True),
     }
@@ -53,19 +54,7 @@ def workspace(request, pk):
         context["accessory_items"] = AccessoryMaster.objects.filter(active=True)
         context["results_by_item"] = {r.item_id: r for r in inspection.accessory_results.select_related("condition")}
     elif tab == "photos":
-        categories = list(PhotoCategoryMaster.objects.filter(active=True))
-        existing_by_category = {p.category_id: p for p in inspection.photos.select_related("category")}
-        mandatory = [c for c in categories if c.is_mandatory]
-        additional_category = next((c for c in categories if not c.is_mandatory), None)
-        context["mandatory_photo_slots"] = [(c, existing_by_category.get(c.id)) for c in mandatory]
-        context["additional_category"] = additional_category
-        additional_photos = (
-            inspection.photos.filter(category=additional_category) if additional_category else []
-        )
-        context["additional_photos"] = additional_photos
-        context["additional_remaining"] = (
-            max(additional_category.max_count - len(additional_photos), 0) if additional_category else 0
-        )
+        context["photos"] = inspection.photos.all()
     elif tab == "videos":
         context["videos"] = inspection.videos.filter(active=True)
     elif tab == "documents":
@@ -122,42 +111,33 @@ def save_accessories(request, pk):
 @login_required
 @permission_required("inspections.upload_photo", raise_exception=True)
 @require_POST
-def upload_bulk_photos(request, pk):
-    """One submit handles the whole photo tab: any of the 14 mandatory
-    slots (each an input named `photo_<category_id>`, at most one file)
-    plus up to `max_count` files in the `additional_photos` multi-file
-    input for the non-mandatory 'Additional Photos' slot."""
+def upload_photo(request, pk):
     inspection = _get_inspection(pk)
-    categories = {str(c.id): c for c in PhotoCategoryMaster.objects.filter(active=True)}
-
-    items = []
-    for key, file in request.FILES.items():
-        if not key.startswith("photo_"):
-            continue
-        category = categories.get(key.removeprefix("photo_"))
-        if category and category.is_mandatory:
-            items.append((category, file))
-
-    additional_category = next((c for c in categories.values() if not c.is_mandatory), None)
-    if additional_category:
-        additional_files = request.FILES.getlist("additional_photos")
-        already = inspection.photos.filter(category=additional_category).count()
-        allowed = max(additional_category.max_count - already, 0)
-        if len(additional_files) > allowed:
-            messages.error(
-                request,
-                f"Only {allowed} more \"{additional_category.name}\" photo(s) can be added "
-                f"(max {additional_category.max_count}).",
-            )
-            return redirect(f"/inspections/{pk}/?tab=photos")
-        items += [(additional_category, f) for f in additional_files]
-
-    if not items:
-        messages.error(request, "No files received.")
+    files = request.FILES.getlist("file")
+    if not files:
+        messages.error(request, "No file received.")
         return redirect(f"/inspections/{pk}/?tab=photos")
 
-    bulk_upload_photos(inspection=inspection, items=items, uploaded_by=request.user)
-    messages.success(request, f"{len(items)} photo(s) uploaded.")
+    category = request.POST.get("category", PhotoCategory.OTHER)
+    latitude = request.POST.get("latitude") or None
+    longitude = request.POST.get("longitude") or None
+
+    uploaded, failed = 0, []
+    for file in files:
+        try:
+            add_photo(
+                inspection=inspection, file=file, category=category,
+                uploaded_by=request.user, latitude=latitude, longitude=longitude,
+            )
+            uploaded += 1
+        except Exception as exc:  # noqa: BLE001 — one bad file shouldn't sink the whole batch
+            failed.append(f"{getattr(file, 'name', 'file')}: {exc}")
+
+    if uploaded:
+        messages.success(request, f"{uploaded} photo{'s' if uploaded != 1 else ''} uploaded.")
+    for msg in failed:
+        messages.error(request, f"Could not upload {msg}")
+
     return redirect(f"/inspections/{pk}/?tab=photos")
 
 
@@ -201,3 +181,57 @@ def submit(request, pk):
     except PermissionDenied as exc:
         messages.error(request, str(exc))
         return redirect(f"/inspections/{pk}/")
+
+
+@login_required
+@require_POST
+def generate_report_view(request, pk):
+    inspection = _get_inspection(pk)
+    try:
+        from .services import generate_report
+        report = generate_report(inspection=inspection, generated_by=request.user, request=request)
+        messages.success(request, f"Report v{report.version} generated.")
+        return redirect("inspections:download_report", report_pk=report.pk)
+    except ImportError:
+        messages.error(
+            request,
+            "PDF generation isn't available — install WeasyPrint and its system "
+            "libraries (see README) and try again.",
+        )
+        return redirect(f"/inspections/{pk}/")
+
+
+@login_required
+def download_report(request, report_pk):
+    from django.http import FileResponse
+
+    from .models import InspectionReport
+    report = get_object_or_404(InspectionReport, pk=report_pk)
+    log_action(action="download", module="inspections", obj=report)
+    return FileResponse(report.pdf.open("rb"), as_attachment=False, filename=f"{report.inspection.mis.mis_number}-report-v{report.version}.pdf")
+
+
+@login_required
+def view_video(request, pk, video_id):
+    """
+    Permanent, login-required link — this is what the QR code / 'View Video'
+    link in the PDF report actually points to. Unlike the API's signed
+    30-minute link (apps/inspections/viewsets.secure_video_view, meant for a
+    short-lived external QR scan), a report can be opened long after it was
+    generated, so this link must keep working — but it still requires the
+    viewer to be logged into ACIS and only shows videos from inspections
+    they're allowed to see (same object-level check as the API).
+    """
+    from django.http import FileResponse, Http404
+
+    from .models import InspectionVideo
+    inspection = _get_inspection(pk)
+    video = get_object_or_404(InspectionVideo, pk=video_id, inspection=inspection, active=True)
+
+    user = request.user
+    if not (user.is_superuser or user.role in ("super_admin", "admin", "manager", "qc_executive")
+            or video.inspection.field_executive_id == user.id):
+        raise Http404()
+
+    log_action(action="download", module="inspections", obj=video, new_value={"via": "report_link"})
+    return FileResponse(video.file.open("rb"), content_type=video.mime_type)

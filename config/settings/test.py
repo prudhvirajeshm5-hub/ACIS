@@ -21,6 +21,7 @@ DATABASES = {
         "TEST": {"NAME": BASE_DIR / "test_db.sqlite3"},
     }
 }
+
 PASSWORD_HASHERS = ["django.contrib.auth.hashers.MD5PasswordHasher"]  # fast hashing in tests only
 CELERY_TASK_ALWAYS_EAGER = True
 EMAIL_BACKEND = "django.core.mail.backends.locmem.EmailBackend"

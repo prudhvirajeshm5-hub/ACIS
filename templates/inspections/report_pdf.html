@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<style>
+  @page { size: A4; margin: 18mm 14mm; }
+  body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10.5px; color: #16233D; }
+  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #AD5A20; padding-bottom: 10px; margin-bottom: 12px; }
+  .header .brand { font-size: 20px; font-weight: 800; color: #AD5A20; }
+  .header .sub { font-size: 10px; color: #4B5670; margin-top: 2px; }
+  .header .ref { text-align: right; font-size: 10px; }
+  .banner { background: #16233D; color: #fff; padding: 7px 12px; font-weight: 700; font-size: 12px; margin-bottom: 10px; }
+  table.meta { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+  table.meta td { border: 1px solid #D8DCE3; padding: 5px 8px; font-size: 10px; vertical-align: top; }
+  table.meta td b { display: block; color: #4B5670; font-size: 8.5px; text-transform: uppercase; margin-bottom: 2px; }
+  .section-title { background: #F2E1CD; color: #8C4718; font-weight: 700; padding: 5px 8px; font-size: 10.5px; margin: 14px 0 6px; }
+  table.grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
+  table.grid td { border: 1px solid #D8DCE3; padding: 4px 7px; font-size: 9.5px; width: 25%; }
+  .flag-bad { color: #B23A3A; font-weight: 700; }
+  .flag-ok { color: #2E7D5C; }
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .photo-grid .cell { width: 23%; }
+  .photo-grid img { width: 100%; height: 70px; object-fit: cover; border: 1px solid #D8DCE3; }
+  .photo-grid .cap { font-size: 8px; color: #4B5670; text-align: center; margin-top: 2px; }
+  .video-row { display: flex; align-items: center; gap: 10px; border: 1px solid #D8DCE3; padding: 6px 8px; margin-bottom: 6px; }
+  .video-row img.qr { width: 50px; height: 50px; }
+  .video-row .info { flex: 1; font-size: 9.5px; }
+  .video-row .info a { color: #8C4718; }
+  .decl { font-size: 8.5px; color: #4B5670; margin-top: 16px; border-top: 1px solid #D8DCE3; padding-top: 8px; }
+  .decl li { margin-bottom: 3px; }
+  .footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 8px; color: #8991A6; text-align: center; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="brand">ACIS</div>
+    <div class="sub">Insurance Inspection &amp; MIS Management System</div>
+  </div>
+  <div class="ref">
+    <div><b>Ref No.</b> {{ mis.mis_number }}</div>
+    <div>Report version {{ version }}</div>
+    <div>Generated {{ generated_by }} · {% now "d M Y, H:i" %}</div>
+  </div>
+</div>
+
+<div class="banner">VEHICLE INSPECTION REPORT</div>
+
+<table class="meta">
+  <tr>
+    <td style="width:50%;"><b>Customer</b>{{ mis.customer.name }}<br>{{ mis.customer.mobile }}</td>
+    <td style="width:50%;"><b>Insurer / Branch</b>{{ mis.insurance_company }}<br>{{ mis.branch }}</td>
+  </tr>
+  <tr>
+    <td><b>Inspection Date</b>{{ inspection.started_at|date:"d M Y, H:i"|default:"—" }}</td>
+    <td><b>Field Executive</b>{{ inspection.field_executive|default:"—" }}</td>
+  </tr>
+</table>
+
+<div class="section-title">Vehicle Details</div>
+<table class="grid">
+  <tr>
+    <td><b>Vehicle No.</b><br>{{ mis.vehicle.registration_number }}</td>
+    <td><b>Make / Model</b><br>{{ mis.vehicle.make }} {{ mis.vehicle.model }}</td>
+    <td><b>Year</b><br>{{ mis.vehicle.manufacturing_year }}</td>
+    <td><b>Fuel</b><br>{{ mis.vehicle.fuel_type }}</td>
+  </tr>
+  <tr>
+    <td><b>Chassis No.</b><br>{{ mis.vehicle.chassis_number|default:"—" }}</td>
+    <td><b>Engine No.</b><br>{{ mis.vehicle.engine_number|default:"—" }}</td>
+    <td><b>Odometer</b><br>{{ inspection.odometer_reading|default:"—" }}</td>
+    <td><b>Engine Condition</b><br>{{ inspection.engine_condition|default:"—" }}</td>
+  </tr>
+</table>
+
+<div class="section-title">Body Inspection</div>
+<table class="grid">
+  {% for r in item_results %}
+    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    <td><b>{{ r.item.name }}</b><br><span class="{% if r.condition.is_positive %}flag-ok{% else %}flag-bad{% endif %}">{{ r.condition.name }}</span></td>
+    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td>No checklist recorded.</td></tr>{% endfor %}
+</table>
+
+<div class="section-title">Glass Inspection</div>
+<table class="grid">
+  {% for r in glass_results %}
+    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    <td><b>{{ r.item.name }}</b><br><span class="{% if r.condition.is_positive %}flag-ok{% else %}flag-bad{% endif %}">{{ r.condition.name }}</span></td>
+    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td>No glass checklist recorded.</td></tr>{% endfor %}
+</table>
+
+<div class="section-title">Accessories</div>
+<table class="grid">
+  {% for r in accessory_results %}
+    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    <td><b>{{ r.item.name }}</b><br>{{ r.present|yesno:"Present,Not Present" }}</td>
+    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td>No accessories recorded.</td></tr>{% endfor %}
+</table>
+
+{% if previous_insurance %}
+<div class="section-title">Previous Insurance</div>
+<table class="grid">
+  <tr>
+    <td><b>Previous Insurer</b><br>{{ previous_insurance.previous_insurer|default:"—" }}</td>
+    <td><b>Policy Number</b><br>{{ previous_insurance.policy_number|default:"—" }}</td>
+    <td><b>Previous Claim</b><br>{{ previous_insurance.had_previous_claim|yesno:"Yes,No" }}</td>
+    <td><b>No Claim Bonus</b><br>{{ previous_insurance.no_claim_bonus_percent }}%</td>
+  </tr>
+</table>
+{% endif %}
+
+<div class="section-title">Document Verification</div>
+<table class="grid">
+  {% for d in documents %}
+    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    <td><b>{{ d.get_document_type_display }}</b><br><span class="{% if d.verified %}flag-ok{% else %}flag-bad{% endif %}">{{ d.verified|yesno:"Verified,Pending" }}</span></td>
+    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td>No documents recorded.</td></tr>{% endfor %}
+</table>
+
+<div class="section-title">Photographic Evidence</div>
+<div class="photo-grid">
+  {% for row in photo_rows %}
+    <div class="cell">
+      {% if row.uri %}<img src="{{ row.uri }}">{% endif %}
+      <div class="cap">{{ row.photo.get_category_display }}</div>
+    </div>
+  {% empty %}<p>No photos attached.</p>{% endfor %}
+</div>
+
+<div class="section-title">Video Evidence</div>
+{% for row in video_rows %}
+  <div class="video-row">
+    <img class="qr" src="data:image/png;base64,{{ row.qr_base64 }}">
+    <div class="info">
+      <b>{{ row.video.category.name }}</b>{% if row.video.duration_seconds %} · {{ row.video.duration_seconds }}s{% endif %}<br>
+      Scan the QR code or open: <a href="{{ row.view_url }}">{{ row.view_url }}</a><br>
+      Requires an authorized ACIS login to view.
+    </div>
+  </div>
+{% empty %}<p>No videos attached.</p>{% endfor %}
+
+<div class="section-title">QC Status</div>
+<table class="grid">
+  <tr>
+    <td><b>Decision</b><br>{{ latest_qc.get_decision_display|default:"Not yet reviewed" }}</td>
+    <td><b>QC Executive</b><br>{{ latest_qc.qc_executive|default:"—" }}</td>
+    <td><b>Reviewed</b><br>{{ latest_qc.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
+    <td><b>Remarks</b><br>{{ latest_qc.remarks|default:"—" }}</td>
+  </tr>
+</table>
+
+<div class="decl">
+  <b>Declaration</b>
+  <ul>
+    <li>This inspection was carried out by the field executive named above at the location and time recorded in the system.</li>
+    <li>The condition of each item listed reflects what was observed and photographed/recorded on the date of inspection only.</li>
+    <li>Any damage not noted in this report but later identified is not covered by this inspection.</li>
+    <li>This report is generated by ACIS and is intended solely for the insurer and policyholder named above.</li>
+  </ul>
+</div>
+
+<div class="footer">ACIS — Insurance Inspection &amp; MIS Management System · Report {{ mis.mis_number }} v{{ version }}</div>
+
+</body>
+</html>

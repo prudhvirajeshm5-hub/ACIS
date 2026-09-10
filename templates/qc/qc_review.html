@@ -24,6 +24,9 @@
     {% endif %}
 
     <a class="btn btn-ghost" style="margin-top:14px;" href="{% url 'inspections:workspace' inspection.pk %}">Open full inspection workspace →</a>
+    <form method="post" action="{% url 'inspections:generate_report' inspection.pk %}" style="margin-top:8px;display:inline;">
+      {% csrf_token %}<button class="btn btn-ghost" type="submit">Generate Report</button>
+    </form>
   </div>
 
   <div class="card">

@@ -81,9 +81,10 @@
     <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">
       {% csrf_token %}
       <select name="category">{% for value, label in photo_categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
-      <input type="file" name="file" accept="image/*" required style="width:auto;">
-      <button class="btn btn-primary" type="submit">Upload Photo</button>
+      <input type="file" name="file" accept="image/*" multiple required style="width:auto;">
+      <button class="btn btn-primary" type="submit">Upload Photos</button>
     </form>
+    <p style="color:var(--ink-faint);font-size:0.85em;text-align:center;margin-top:6px;">Select multiple files (ctrl/cmd-click or shift-click) to upload them together under the chosen category — do it once for your 14 required shots, then again for any additional photos.</p>
   </div>
   <div class="media-grid">
     {% for p in photos %}
@@ -146,7 +147,11 @@
 {% endif %}
 
 {% if perms.inspections.submit_inspection %}
-<div style="display:flex;justify-content:flex-end;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);">
+<div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);">
+  <form method="post" action="{% url 'inspections:generate_report' inspection.pk %}">
+    {% csrf_token %}
+    <button class="btn btn-ghost" type="submit">Generate Report</button>
+  </form>
   <form method="post" action="{% url 'inspections:submit' inspection.pk %}">
     {% csrf_token %}
     <button class="btn btn-primary" type="submit" {% if inspection.is_submitted %}disabled{% endif %}>

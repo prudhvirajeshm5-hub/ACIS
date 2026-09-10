@@ -34,13 +34,6 @@ ACCESSORY_ITEMS = [
     "Central Locking", "Power Windows",
 ]
 
-PHOTO_CATEGORIES = [
-    "Front View", "Rear View", "Left Side View", "Right Side View",
-    "Front-Left 45°", "Front-Right 45°", "Rear-Left 45°", "Rear-Right 45°",
-    "Engine Bay", "Dashboard / Odometer", "Chassis Number / VIN Plate",
-    "Number Plate (Front)", "Number Plate (Rear)", "Roof / Interior",
-]  # 14 mandatory bulk-upload slots — one photo each, re-upload replaces it.
-
 VIDEO_CATEGORIES = [
     "Exterior Walkaround", "Front View", "Rear View", "Left Side", "Right Side",
     "Engine Bay", "Interior", "Odometer", "Chassis / VIN", "Damage Evidence",
@@ -78,15 +71,6 @@ class Command(BaseCommand):
             m.AccessoryMaster.objects.get_or_create(name=name, defaults={"display_order": i})
         for i, name in enumerate(VIDEO_CATEGORIES):
             m.VideoCategoryMaster.objects.get_or_create(name=name, defaults={"display_order": i})
-
-        for i, name in enumerate(PHOTO_CATEGORIES):
-            m.PhotoCategoryMaster.objects.get_or_create(
-                name=name, defaults={"display_order": i, "is_mandatory": True, "max_count": 1}
-            )
-        m.PhotoCategoryMaster.objects.get_or_create(
-            name="Additional Photos",
-            defaults={"display_order": len(PHOTO_CATEGORIES), "is_mandatory": False, "max_count": 4},
-        )
 
         for state_name, districts in STATES_DISTRICTS.items():
             state, _ = m.State.objects.get_or_create(name=state_name)

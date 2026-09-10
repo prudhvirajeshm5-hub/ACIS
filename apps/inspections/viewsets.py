@@ -136,29 +136,16 @@ class InspectionViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=["post"], url_path="photos")
     def upload_photo_action(self, request, pk=None):
-        """Single-slot upload for the mobile app: `category` is a
-        PhotoCategoryMaster id. Re-uploading a mandatory slot replaces its
-        photo; the non-mandatory 'Additional Photos' slot is capped at
-        `category.max_count` here too, matching the bulk web upload."""
         inspection = self.get_object()
         if not request.user.has_perm("inspections.upload_photo"):
             return Response({"detail": "Not permitted."}, status=403)
         file = request.FILES.get("file")
-        category_id = request.data.get("category")
-        if not file or not category_id:
-            return Response({"detail": "file and category are required"}, status=400)
-        from apps.masters.models import PhotoCategoryMaster
-        try:
-            category = PhotoCategoryMaster.objects.get(pk=category_id, active=True)
-        except PhotoCategoryMaster.DoesNotExist:
-            return Response({"detail": "Unknown photo category."}, status=400)
-        if category.is_mandatory:
-            InspectionPhoto.objects.filter(inspection=inspection, category=category).delete()
-        elif inspection.photos.filter(category=category).count() >= category.max_count:
-            return Response(
-                {"detail": f"Only {category.max_count} \"{category.name}\" photo(s) allowed."}, status=400
-            )
-        photo = add_photo(inspection=inspection, file=file, category=category, uploaded_by=request.user)
+        if not file:
+            return Response({"detail": "file is required"}, status=400)
+        photo = add_photo(
+            inspection=inspection, file=file, category=request.data.get("category", "other"),
+            uploaded_by=request.user,
+        )
         return Response(InspectionPhotoSerializer(photo).data, status=201)
 
     @action(detail=True, methods=["post"], url_path="videos")

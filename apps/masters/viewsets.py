@@ -89,9 +89,3 @@ class VideoCategoryMasterViewSet(ActiveOnlyMixin, viewsets.ModelViewSet):
     queryset = m.VideoCategoryMaster.objects.all()
     serializer_class = s.VideoCategoryMasterSerializer
     permission_classes = [IsAuthenticated]
-
-
-class PhotoCategoryMasterViewSet(ActiveOnlyMixin, viewsets.ModelViewSet):
-    queryset = m.PhotoCategoryMaster.objects.all()
-    serializer_class = s.PhotoCategoryMasterSerializer
-    permission_classes = [IsAuthenticated]

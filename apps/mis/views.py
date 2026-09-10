@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -25,6 +26,27 @@ User = get_user_model()
 SESSION_KEY = "create_mis_wizard"
 STEP_FORMS = {1: MISDetailsForm, 2: CustomerForm, 3: VehicleForm, 4: AssignmentForm}
 STEP_TITLES = {1: "Inspection Details", 2: "Customer Details", 3: "Vehicle Details", 4: "Inspection Assignment"}
+
+
+def _session_safe(cleaned_data):
+    """Reduce a form's cleaned_data to values the (JSON) session backend can
+    actually serialize: model instances (from ModelChoiceField) become their
+    pk, dates/datetimes become ISO strings, Decimals become strings. Every
+    wizard step form is a ModelForm, so this covers all four steps generically
+    instead of hand-listing which fields are FKs/dates per form."""
+    safe = {}
+    for key, value in cleaned_data.items():
+        if isinstance(value, Model):
+            safe[key] = str(value.pk)
+        elif isinstance(value, uuid.UUID):
+            safe[key] = str(value)
+        elif isinstance(value, (datetime.date, datetime.datetime)):
+            safe[key] = value.isoformat()
+        elif isinstance(value, Decimal):
+            safe[key] = str(value)
+        else:
+            safe[key] = value
+    return safe
 
 
 # ---------------------------------------------------------------------------
@@ -110,7 +132,7 @@ class CreateMISWizardView(LoginRequiredMixin, PermissionRequiredMixin, View):
         if not form.is_valid():
             return render(request, "mis/mis_wizard.html", self._ctx(step, form, data))
 
-        data[str(step)] = self._serialize_cleaned_data(form.cleaned_data)
+        data[str(step)] = _session_safe(form.cleaned_data)
         request.session[SESSION_KEY] = data
         request.session.modified = True
 
@@ -128,54 +150,23 @@ class CreateMISWizardView(LoginRequiredMixin, PermissionRequiredMixin, View):
             kwargs["user"] = request.user
         return form_cls(**kwargs)
 
-    @staticmethod
-    def _serialize_cleaned_data(cleaned_data):
-        """Sessions are stored via Django's JSON serializer, so anything
-        that isn't a plain JSON type has to be reduced to one before it's
-        saved. DateField/DateTimeField values come back from cleaned_data
-        as date/datetime objects, and ModelChoiceField values (e.g.
-        insurance_company, branch, field_executive) come back as model
-        instances — both raise "Object of type X is not JSON serializable"
-        if stashed into the session as-is. This project's models use UUID
-        primary keys (see UUIDModel), so the pk itself is also a non-JSON
-        `uuid.UUID` and has to be stringified, not just unwrapped. Reduce
-        everything to isoformat strings / string pks here; `_revalidate`
-        turns them back into real objects at step-4 finalize time by
-        re-running them through the form (which already knows how to turn
-        a pk string back into the referenced object)."""
-        safe = {}
-        for key, value in cleaned_data.items():
-            if isinstance(value, (datetime.datetime, datetime.date)):
-                safe[key] = value.isoformat()
-            elif isinstance(value, Model):
-                safe[key] = str(value.pk)
-            elif isinstance(value, uuid.UUID):
-                safe[key] = str(value)
-            else:
-                safe[key] = value
-        return safe
-
-    def _revalidate(self, step, raw, request):
-        """Rebuild real cleaned_data (model instances, date objects) from
-        the JSON-safe primitives stored in the session, by feeding them
-        back through the step's own form — the same form data format the
-        widgets already produce on submit, so this is just re-validation."""
-        form = self._build_form(STEP_FORMS[step], request, data=raw)
+    def _step_cleaned_data(self, request, step, data):
+        """Re-hydrate a step's session-safe dict (pks, ISO date strings) back
+        into real objects by re-running it through the same form that
+        produced it — ModelChoiceField/DateField already know how to turn a
+        pk/ISO string back into an instance/date, so there's no need to
+        duplicate that per field here."""
+        form_cls = STEP_FORMS[step]
+        form = self._build_form(form_cls, request, data=data[str(step)])
         form.is_valid()
         return form.cleaned_data
 
     def _finalize(self, request, data):
         try:
-            # All four step forms have FK and/or date fields (mis_date;
-            # insurance_company/branch; state/district/city;
-            # vehicle_type/make/model/fuel_type; field_executive/
-            # scheduled_date), so every step's stored primitives need to
-            # be turned back into real objects the same way — not just
-            # steps 1 and 4.
-            step1 = self._revalidate(1, data["1"], request)
-            step2 = self._revalidate(2, data["2"], request)
-            step3 = self._revalidate(3, data["3"], request)
-            step4 = self._revalidate(4, data["4"], request)
+            step1 = self._step_cleaned_data(request, 1, data)
+            step2 = self._step_cleaned_data(request, 2, data)
+            step3 = self._step_cleaned_data(request, 3, data)
+            step4 = self._step_cleaned_data(request, 4, data)
 
             customer, _ = Customer.objects.get_or_create(
                 mobile=step2["mobile"], defaults=step2,

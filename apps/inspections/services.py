@@ -86,25 +86,9 @@ def add_photo(*, inspection, file, category, uploaded_by, **meta):
         original_filename=getattr(file, "name", ""), file_size=file.size,
         mime_type=getattr(file, "content_type", ""), **meta,
     )
-    _log_event(inspection, f"{category.name} photo uploaded", uploaded_by)
+    _log_event(inspection, f"{photo.get_category_display()} photo uploaded", uploaded_by)
     log_action(action="upload", module="inspections", obj=photo)
     return photo
-
-
-@transaction.atomic
-def bulk_upload_photos(*, inspection, items, uploaded_by):
-    """`items` is a list of (category, file) tuples, mixing any number of
-    mandatory slots (Front View, Engine Bay, ...) with any number of files
-    for a non-mandatory slot (Additional Photos). Mandatory slots always
-    hold a single photo — re-uploading one deletes the old file and
-    replaces it. Non-mandatory slots simply add another photo, subject to
-    the cap the view has already checked against `category.max_count`."""
-    created = []
-    for category, file in items:
-        if category.is_mandatory:
-            InspectionPhoto.objects.filter(inspection=inspection, category=category).delete()
-        created.append(add_photo(inspection=inspection, file=file, category=category, uploaded_by=uploaded_by))
-    return created
 
 
 @transaction.atomic
@@ -129,3 +113,76 @@ def replace_video(*, old_video, new_file, uploaded_by):
         inspection=old_video.inspection, file=new_file, category=old_video.category,
         uploaded_by=uploaded_by, replaces=old_video,
     )
+
+
+def generate_report(*, inspection, generated_by, request=None):
+    """
+    Renders the inspection to PDF (WeasyPrint) and saves it as a new,
+    immutable InspectionReport version. Called from the "Generate Report"
+    button on the QC review / MIS detail screens.
+
+    Photos are embedded via file:// paths (WeasyPrint resolves these
+    directly from disk — no running server needed to render the PDF).
+    Each video gets a QR code + clickable link pointing at a permanent,
+    login-required view (apps.inspections.views.view_video) rather than
+    embedding the video itself, per the spec's "don't embed full video
+    files in the PDF" requirement.
+    """
+    import base64
+    import io
+
+    import qrcode
+    from django.core.files.base import ContentFile
+    from django.template.loader import render_to_string
+    from django.urls import reverse
+    from weasyprint import HTML
+
+    from .models import InspectionReport
+
+    last = inspection.reports.first()  # ordering = -version
+    next_version = (last.version + 1) if last else 1
+
+    def _file_uri(field_file):
+        try:
+            return f"file://{field_file.path}"
+        except (ValueError, FileNotFoundError):
+            return ""
+
+    photo_rows = [{"photo": p, "uri": _file_uri(p.file)} for p in inspection.photos.all()]
+
+    video_rows = []
+    for v in inspection.videos.filter(active=True):
+        view_path = reverse("inspections:view_video", args=[inspection.pk, v.pk])
+        view_url = request.build_absolute_uri(view_path) if request else view_path
+        buf = io.BytesIO()
+        qrcode.make(view_url).save(buf, format="PNG")
+        video_rows.append({
+            "video": v, "view_url": view_url,
+            "qr_base64": base64.b64encode(buf.getvalue()).decode(),
+        })
+
+    html_string = render_to_string("inspections/report_pdf.html", {
+        "inspection": inspection,
+        "mis": inspection.mis,
+        "item_results": inspection.item_results.select_related("item", "condition"),
+        "glass_results": inspection.glass_results.select_related("item", "condition"),
+        "accessory_results": inspection.accessory_results.select_related("item", "condition"),
+        "photo_rows": photo_rows,
+        "video_rows": video_rows,
+        "documents": inspection.documents.all(),
+        "previous_insurance": getattr(inspection, "previous_insurance", None),
+        "latest_qc": inspection.qc_reviews.select_related("qc_executive").first(),
+        "version": next_version,
+        "generated_by": generated_by,
+    })
+
+    pdf_bytes = HTML(string=html_string).write_pdf()
+
+    report = InspectionReport.objects.create(
+        inspection=inspection, version=next_version, generated_by=generated_by,
+    )
+    report.pdf.save(f"v{next_version}.pdf", ContentFile(pdf_bytes), save=True)
+
+    log_action(action="generate_report", module="inspections", obj=report)
+    _log_event(inspection, f"Inspection report v{next_version} generated", generated_by)
+    return report

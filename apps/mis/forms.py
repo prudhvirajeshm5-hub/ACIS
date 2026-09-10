@@ -56,7 +56,7 @@ class VehicleForm(forms.ModelForm):
         fields = ["registration_number", "vehicle_type", "make", "model", "fuel_type",
                   "manufacturing_year", "engine_number", "chassis_number"]
         widgets = {f: forms.TextInput(attrs=_w()) for f in
-                   ["registration_number", "make", "model", "engine_number", "chassis_number", "manufacturing_year"]}
+                   ["registration_number", "engine_number", "chassis_number", "manufacturing_year"]}
 
 
 class AssignmentForm(forms.ModelForm):

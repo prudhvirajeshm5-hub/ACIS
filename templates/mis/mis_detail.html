@@ -23,4 +23,20 @@
   Location: {{ mis.inspection_location|default:"—" }}<br>
   Priority: {{ mis.get_priority_display }}</p>
 </div>
+
+{% if mis.inspection.pk %}
+<div class="card">
+  <h3>Reports</h3>
+  <form method="post" action="{% url 'inspections:generate_report' mis.inspection.pk %}" style="margin-bottom:12px;">
+    {% csrf_token %}
+    <button class="btn btn-primary" type="submit">Generate Report</button>
+  </form>
+  {% for report in mis.inspection.reports.all %}
+    <div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--paper);font-size:13px;">
+      <span>Version {{ report.version }} — {{ report.generated_at|date:"d M Y, H:i" }} by {{ report.generated_by }}</span>
+      <a class="link-btn" href="{% url 'inspections:download_report' report.pk %}" target="_blank">View PDF</a>
+    </div>
+  {% empty %}<p style="color:var(--ink-faint);font-size:13px;">No report generated yet.</p>{% endfor %}
+</div>
+{% endif %}
 {% endblock %}

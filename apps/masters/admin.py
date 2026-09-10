@@ -98,10 +98,3 @@ class ConditionOptionAdmin(admin.ModelAdmin):
 @admin.register(m.VideoCategoryMaster)
 class VideoCategoryMasterAdmin(admin.ModelAdmin):
     list_display = ["name", "display_order", "active"]
-
-
-@admin.register(m.PhotoCategoryMaster)
-class PhotoCategoryMasterAdmin(admin.ModelAdmin):
-    list_display = ["name", "display_order", "is_mandatory", "max_count", "active"]
-    list_filter = ["is_mandatory", "active"]
-    ordering = ["display_order"]

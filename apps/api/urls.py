@@ -8,7 +8,7 @@ from apps.inspections.viewsets import InspectionVideoViewSet, InspectionViewSet,
 from apps.insurers.viewsets import InsuranceBranchViewSet, InsuranceCompanyViewSet
 from apps.masters.viewsets import (
     AccessoryMasterViewSet, CityViewSet, ConditionOptionViewSet, DistrictViewSet,
-    GlassItemMasterViewSet, InspectionItemMasterViewSet, PhotoCategoryMasterViewSet, StateViewSet,
+    GlassItemMasterViewSet, InspectionItemMasterViewSet, StateViewSet,
     VehicleMakeViewSet, VehicleModelViewSet, VehicleTypeViewSet, VideoCategoryMasterViewSet,
 )
 from apps.mis.viewsets import MISViewSet
@@ -40,7 +40,6 @@ router.register("masters/glass-items", GlassItemMasterViewSet, basename="glassit
 router.register("masters/accessories", AccessoryMasterViewSet, basename="accessorymaster")
 router.register("masters/conditions", ConditionOptionViewSet, basename="conditionoption")
 router.register("masters/video-categories", VideoCategoryMasterViewSet, basename="videocategorymaster")
-router.register("masters/photo-categories", PhotoCategoryMasterViewSet, basename="photocategorymaster")
 
 urlpatterns = [
     path("auth/token/", obtain_auth_token, name="api_token_auth"),

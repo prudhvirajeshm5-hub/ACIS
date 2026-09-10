@@ -9,7 +9,7 @@ from apps.customers.models import Customer
 from apps.insurers.models import InsuranceBranch, InsuranceCompany
 from apps.masters.models import (
     ConditionOption, District, FuelType, GlassItemMaster, InspectionItemMaster,
-    State, VehicleType, VideoCategoryMaster,
+    State, VehicleMake, VehicleModel, VehicleType, VideoCategoryMaster,
 )
 from apps.mis.models import MIS
 from apps.vehicles.models import Vehicle
@@ -26,13 +26,15 @@ def make_masters():
     state = State.objects.create(name="Maharashtra")
     district = District.objects.create(state=state, name="Pune")
     vt = VehicleType.objects.create(name="Hatchback")
+    make = VehicleMake.objects.create(vehicle_type=vt, name="Maruti Suzuki")
+    model = VehicleModel.objects.create(make=make, name="Swift")
     fuel = FuelType.objects.create(name="Petrol")
     ConditionOption.objects.get_or_create(name="Safe", defaults={"is_positive": True})
     ConditionOption.objects.get_or_create(name="Damaged", defaults={"is_positive": False})
     InspectionItemMaster.objects.get_or_create(name="Front Bumper")
     GlassItemMaster.objects.get_or_create(name="Front Windshield")
     VideoCategoryMaster.objects.get_or_create(name="Exterior Walkaround")
-    return {"state": state, "district": district, "vehicle_type": vt, "make": "Maruti Suzuki", "model": "Swift", "fuel": fuel}
+    return {"state": state, "district": district, "vehicle_type": vt, "make": make, "model": model, "fuel": fuel}
 
 
 def make_insurer(district):

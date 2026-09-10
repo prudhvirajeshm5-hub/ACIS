@@ -67,9 +67,3 @@ class VideoCategoryMasterSerializer(serializers.ModelSerializer):
     class Meta:
         model = m.VideoCategoryMaster
         fields = ["id", "name", "display_order", "active"]
-
-
-class PhotoCategoryMasterSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = m.PhotoCategoryMaster
-        fields = ["id", "name", "display_order", "is_mandatory", "max_count", "active"]

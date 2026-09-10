@@ -120,23 +120,3 @@ class VideoCategoryMaster(NamedMaster):
     class Meta(NamedMaster.Meta):
         ordering = ["display_order", "name"]
         verbose_name = "Video category"
-
-
-class PhotoCategoryMaster(NamedMaster):
-    """The fixed bulk-upload photo checklist (Front View, Engine Bay, ...)
-    plus a free-form 'Additional Photos' slot for anything not covered.
-
-    Mandatory slots (is_mandatory=True) hold exactly one photo per
-    inspection — re-uploading a slot replaces its photo. Non-mandatory
-    slots (e.g. 'Additional Photos') allow up to max_count photos per
-    inspection instead of just one.
-    """
-    display_order = models.PositiveSmallIntegerField(default=0)
-    is_mandatory = models.BooleanField(default=True)
-    max_count = models.PositiveSmallIntegerField(
-        default=1, help_text="Photos allowed per inspection for this slot. Mandatory slots are always 1."
-    )
-
-    class Meta(NamedMaster.Meta):
-        ordering = ["display_order", "name"]
-        verbose_name = "Photo category"

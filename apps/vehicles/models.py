@@ -6,8 +6,8 @@ from apps.audit.mixins import TimeStampedModel, UUIDModel
 class Vehicle(UUIDModel, TimeStampedModel):
     registration_number = models.CharField(max_length=15, unique=True, db_index=True)
     vehicle_type = models.ForeignKey("masters.VehicleType", on_delete=models.PROTECT)
-    make = models.CharField(max_length=100)
-    model = models.CharField(max_length=100)
+    make = models.ForeignKey("masters.VehicleMake", on_delete=models.PROTECT)
+    model = models.ForeignKey("masters.VehicleModel", on_delete=models.PROTECT)
     fuel_type = models.ForeignKey("masters.FuelType", on_delete=models.PROTECT)
     manufacturing_year = models.PositiveSmallIntegerField()
     engine_number = models.CharField(max_length=40, blank=True)
