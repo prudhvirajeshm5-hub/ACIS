@@ -137,7 +137,7 @@ def generate_report(*, inspection, generated_by, request=None):
     from django.urls import reverse
     from weasyprint import HTML
 
-    from .models import InspectionReport
+    from .models import InspectionReport, PhotoCategory
 
     last = inspection.reports.first()  # ordering = -version
     next_version = (last.version + 1) if last else 1
@@ -148,7 +148,10 @@ def generate_report(*, inspection, generated_by, request=None):
         except (ValueError, FileNotFoundError):
             return ""
 
-    photo_rows = [{"photo": p, "uri": _file_uri(p.file)} for p in inspection.photos.all()]
+    all_photos = list(inspection.photos.all())
+    photo_rows = [{"photo": p, "uri": _file_uri(p.file)} for p in all_photos]
+    chassis_photo = next((p for p in all_photos if p.category == PhotoCategory.CHASSIS), None)
+    chassis_photo_uri = _file_uri(chassis_photo.file) if chassis_photo else ""
 
     video_rows = []
     for v in inspection.videos.filter(active=True):
@@ -168,6 +171,7 @@ def generate_report(*, inspection, generated_by, request=None):
         "glass_results": inspection.glass_results.select_related("item", "condition"),
         "accessory_results": inspection.accessory_results.select_related("item", "condition"),
         "photo_rows": photo_rows,
+        "chassis_photo_uri": chassis_photo_uri,
         "video_rows": video_rows,
         "documents": inspection.documents.all(),
         "previous_insurance": getattr(inspection, "previous_insurance", None),

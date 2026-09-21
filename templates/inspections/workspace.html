@@ -77,15 +77,59 @@
   </form>
 
 {% elif active_tab == "photos" %}
-  <div class="upload-box">
-    <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data" style="display:flex;gap:10px;align-items:center;justify-content:center;flex-wrap:wrap;">
-      {% csrf_token %}
-      <select name="category">{% for value, label in photo_categories %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select>
-      <input type="file" name="file" accept="image/*" multiple required style="width:auto;">
-      <button class="btn btn-primary" type="submit">Upload Photos</button>
-    </form>
-    <p style="color:var(--ink-faint);font-size:0.85em;text-align:center;margin-top:6px;">Select multiple files (ctrl/cmd-click or shift-click) to upload them together under the chosen category — do it once for your 14 required shots, then again for any additional photos.</p>
+  <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px;">
+
+    <div class="upload-box" style="border:1px solid var(--line);border-radius:var(--radius);padding:14px;">
+      <div style="font-weight:600;margin-bottom:2px;">Required Photos</div>
+      <p style="color:var(--ink-faint);font-size:0.85em;margin:0 0 10px;">Select multiple files (ctrl/cmd-click or shift-click) — up to 14 at once.</p>
+      <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data"
+            onsubmit="return acisCheckCount(this, 14);" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="slot" value="required">
+        <input type="hidden" name="category" value="other">
+        <input type="file" name="file" accept="image/*" multiple required style="width:auto;">
+        <button class="btn btn-primary" type="submit">Upload Photos</button>
+      </form>
+    </div>
+
+    <div class="upload-box" style="border:1px solid var(--line);border-radius:var(--radius);padding:14px;">
+      <div style="font-weight:600;margin-bottom:2px;">Chassis Photo</div>
+      <p style="color:var(--ink-faint);font-size:0.85em;margin:0 0 10px;">One photo of the chassis plate/number.</p>
+      <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data"
+            onsubmit="return acisCheckCount(this, 1);" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="slot" value="chassis">
+        <input type="hidden" name="category" value="chassis">
+        <input type="file" name="file" accept="image/*" required style="width:auto;">
+        <button class="btn btn-primary" type="submit">Upload Chassis Photo</button>
+      </form>
+    </div>
+
+    <div class="upload-box" style="border:1px solid var(--line);border-radius:var(--radius);padding:14px;">
+      <div style="font-weight:600;margin-bottom:2px;">Additional Photos</div>
+      <p style="color:var(--ink-faint);font-size:0.85em;margin:0 0 10px;">Anything extra beyond the required set — up to 4 at once.</p>
+      <form method="post" action="{% url 'inspections:upload_photo' inspection.pk %}" enctype="multipart/form-data"
+            onsubmit="return acisCheckCount(this, 4);" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+        {% csrf_token %}
+        <input type="hidden" name="slot" value="additional">
+        <input type="hidden" name="category" value="other">
+        <input type="file" name="file" accept="image/*" multiple required style="width:auto;">
+        <button class="btn btn-primary" type="submit">Upload Additional Photos</button>
+      </form>
+    </div>
+
   </div>
+  <script>
+    function acisCheckCount(form, max) {
+      const input = form.querySelector('input[type="file"]');
+      const count = input.files.length;
+      if (count > max) {
+        alert(`You selected ${count} file${count === 1 ? '' : 's'}, but this upload allows at most ${max}. Please reselect.`);
+        return false;
+      }
+      return true;
+    }
+  </script>
   <div class="media-grid">
     {% for p in photos %}
       <div class="media-card">

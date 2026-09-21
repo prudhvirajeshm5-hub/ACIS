@@ -3,112 +3,226 @@
 <head>
 <meta charset="UTF-8">
 <style>
-  @page { size: A4; margin: 18mm 14mm; }
-  body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10.5px; color: #16233D; }
-  .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #AD5A20; padding-bottom: 10px; margin-bottom: 12px; }
-  .header .brand { font-size: 20px; font-weight: 800; color: #AD5A20; }
-  .header .sub { font-size: 10px; color: #4B5670; margin-top: 2px; }
-  .header .ref { text-align: right; font-size: 10px; }
-  .banner { background: #16233D; color: #fff; padding: 7px 12px; font-weight: 700; font-size: 12px; margin-bottom: 10px; }
-  table.meta { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
-  table.meta td { border: 1px solid #D8DCE3; padding: 5px 8px; font-size: 10px; vertical-align: top; }
-  table.meta td b { display: block; color: #4B5670; font-size: 8.5px; text-transform: uppercase; margin-bottom: 2px; }
-  .section-title { background: #F2E1CD; color: #8C4718; font-weight: 700; padding: 5px 8px; font-size: 10.5px; margin: 14px 0 6px; }
-  table.grid { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
-  table.grid td { border: 1px solid #D8DCE3; padding: 4px 7px; font-size: 9.5px; width: 25%; }
+  @page {
+    size: A4;
+    margin: 32mm 12mm 16mm 12mm;
+    @bottom-center {
+      content: "Page " counter(page) " of " counter(pages);
+      font-family: 'DejaVu Sans', Arial, sans-serif;
+      font-size: 8.5px;
+      color: #8991A6;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 10px; color: #16233D; margin: 0; }
+
+  /* Repeating header — fixed elements are re-drawn on every generated page in WeasyPrint */
+  .running-header {
+    position: fixed; top: -26mm; left: 0; right: 0;
+    font-size: 9px; color: #16233D;
+  }
+  .running-header .idbar {
+    display: flex; justify-content: space-between; background: #EEF1F6;
+    padding: 5px 10px; border: 1px solid #D8DCE3; margin-bottom: 4px;
+  }
+  .running-header .idbar b { color: #16233D; }
+  .running-header .brandrow {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 2px 6px; border-bottom: 2px solid #AD5A20;
+  }
+  .running-header .brand { font-size: 17px; font-weight: 800; color: #AD5A20; letter-spacing: 0.5px; }
+  .running-header .tagline { font-size: 8.5px; color: #4B5670; font-style: italic; }
+
+  .doc-title { text-align: center; background: #16233D; color: #fff; font-weight: 700;
+    font-size: 12px; padding: 6px; margin: 4px 0 10px; }
+  .doc-subtitle { text-align: center; font-size: 13px; font-weight: 700; color: #AD5A20; margin: -6px 0 10px; }
+
+  .section-title { display: flex; align-items: center; gap: 6px; background: #F2E1CD; color: #8C4718;
+    font-weight: 700; padding: 5px 8px; font-size: 10.5px; margin: 12px 0 6px; }
+
+  table.meta { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+  table.meta td { border: 1px solid #D8DCE3; padding: 4px 8px; font-size: 9.5px; vertical-align: top; width: 50%; }
+  table.meta td b { color: #4B5670; }
+
+  table.grid { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+  table.grid td { border: 1px solid #D8DCE3; padding: 4px 8px; font-size: 9.5px; width: 50%; }
+  table.grid td b { color: #4B5670; }
   .flag-bad { color: #B23A3A; font-weight: 700; }
-  .flag-ok { color: #2E7D5C; }
-  .photo-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
-  .photo-grid .cell { width: 23%; }
-  .photo-grid img { width: 100%; height: 70px; object-fit: cover; border: 1px solid #D8DCE3; }
-  .photo-grid .cap { font-size: 8px; color: #4B5670; text-align: center; margin-top: 2px; }
+  .flag-ok { color: #2E7D5C; font-weight: 700; }
+
+  /* Top block: chassis photo + remarks/status, mirroring the field-inspection sample */
+  .top-block { display: flex; gap: 10px; margin-bottom: 10px; align-items: stretch; }
+  .chassis-box { width: 34%; border: 2px solid #16233D; border-radius: 4px; overflow: hidden; position: relative; }
+  .chassis-box .lbl { position: absolute; top: 6px; left: 6px; background: #16233D; color: #fff;
+    font-size: 8.5px; font-weight: 700; padding: 2px 6px; border-radius: 2px; z-index: 10; }
+  .chassis-box img { width: 100%; height: 100%; min-height: 130px; object-fit: cover; display: block; }
+  .chassis-box .empty { min-height: 130px; display: flex; align-items: center; justify-content: center;
+    color: #8991A6; font-size: 9px; text-align: center; padding: 8px; }
+  .remarks-box { flex: 1; border: 2px solid #16233D; border-radius: 4px; padding: 10px; display: flex;
+    flex-direction: column; justify-content: space-between; }
+  .remarks-box .remark-lbl { font-size: 8.5px; color: #4B5670; text-transform: uppercase; font-weight: 700; margin-bottom: 2px; }
+  .remarks-box .remark-text { font-size: 10px; font-weight: 700; margin-bottom: 10px; }
+  .status-pill { display: inline-block; padding: 5px 16px; border-radius: 4px; color: #fff; font-weight: 700; font-size: 11px; }
+  .status-recommended { background: #2E7D5C; }
+  .status-not_recommended { background: #B23A3A; }
+  .status-need_correction, .status-reinspection_required { background: #B98A1E; }
+  .status-pending { background: #8991A6; }
+
+  .photo-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
+  .photo-grid .cell { width: 48%; border: 1px solid #D8DCE3; position: relative; }
+  .photo-grid img { width: 100%; height: 150px; object-fit: cover; display: block; }
+  .photo-grid .caption { background: #16233D; color: #fff; font-size: 8px; padding: 4px 6px; }
+  .photo-grid .caption .cat { font-weight: 700; }
+  .photo-grid .caption .geo { color: #C9D2E3; }
+
   .video-row { display: flex; align-items: center; gap: 10px; border: 1px solid #D8DCE3; padding: 6px 8px; margin-bottom: 6px; }
   .video-row img.qr { width: 50px; height: 50px; }
   .video-row .info { flex: 1; font-size: 9.5px; }
   .video-row .info a { color: #8C4718; }
-  .decl { font-size: 8.5px; color: #4B5670; margin-top: 16px; border-top: 1px solid #D8DCE3; padding-top: 8px; }
-  .decl li { margin-bottom: 3px; }
-  .footer { position: fixed; bottom: -10mm; left: 0; right: 0; font-size: 8px; color: #8991A6; text-align: center; }
+
+  .decl-box { border: 1px solid #D8DCE3; padding: 10px; margin-top: 12px; font-size: 8.5px; color: #333; }
+  .decl-box .decl-title { font-weight: 700; margin-bottom: 6px; font-size: 9.5px; }
+  .decl-box p { margin: 0 0 6px; }
+
+  .qc-block { display: flex; justify-content: space-between; align-items: flex-start; margin-top: 12px;
+    border: 1px solid #D8DCE3; padding: 10px; }
+  .qc-block .qc-fields div { margin-bottom: 4px; font-size: 9.5px; }
+  .qc-block .qc-fields b { color: #4B5670; display: inline-block; width: 90px; }
+  .stamp { width: 70px; height: 70px; border: 2px dashed #8991A6; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 7px; color: #8991A6; padding: 4px; }
+  .signature-caption { text-align: center; font-size: 8px; color: #4B5670; margin-top: 4px; width: 90px; }
+
+  .page-break { page-break-before: always; }
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div>
-    <div class="brand">ACIS</div>
-    <div class="sub">Insurance Inspection &amp; MIS Management System</div>
+<div class="running-header">
+  <div class="idbar">
+    <div>Reference ID : <b>{{ mis.mis_number }}</b></div>
+    <div>Vehicle No.: <b>{{ mis.vehicle.registration_number }}</b></div>
   </div>
-  <div class="ref">
-    <div><b>Ref No.</b> {{ mis.mis_number }}</div>
-    <div>Report version {{ version }}</div>
-    <div>Generated {{ generated_by }} · {% now "d M Y, H:i" %}</div>
+  <div class="brandrow">
+    <div>
+      <div class="brand">ACIS</div>
+      <div class="tagline">Insurance Inspection &amp; MIS Management System</div>
+    </div>
+    <div class="tagline">Report v{{ version }} · Generated {% now "d M Y, H:i" %}</div>
   </div>
 </div>
 
-<div class="banner">VEHICLE INSPECTION REPORT</div>
+<div class="doc-title">VEHICLE INSPECTION REPORT</div>
+<div class="doc-subtitle">{{ mis.vehicle.make }} {{ mis.vehicle.model }}</div>
 
+<div class="top-block">
+  <div class="chassis-box">
+    <div class="lbl">Chassis</div>
+    {% if chassis_photo_uri %}
+      <img src="{{ chassis_photo_uri }}">
+    {% else %}
+      <div class="empty">No chassis photo uploaded for this inspection.</div>
+    {% endif %}
+  </div>
+  <div class="remarks-box">
+    <div>
+      <div class="remark-lbl">Status Remark</div>
+      <div class="remark-text">{{ latest_qc.remarks|default:"Not yet reviewed by QC." }}</div>
+    </div>
+    <div>
+      <div class="remark-lbl">Report Status</div>
+      <span class="status-pill status-{{ latest_qc.decision|default:'pending' }}">
+        {{ latest_qc.get_decision_display|default:"Pending QC" }}
+      </span>
+    </div>
+  </div>
+</div>
+
+<div class="section-title">Inspection Details</div>
 <table class="meta">
   <tr>
-    <td style="width:50%;"><b>Customer</b>{{ mis.customer.name }}<br>{{ mis.customer.mobile }}</td>
-    <td style="width:50%;"><b>Insurer / Branch</b>{{ mis.insurance_company }}<br>{{ mis.branch }}</td>
+    <td><b>Insurer</b><br>{{ mis.insurance_company.name }}</td>
+    <td><b>Inspection Date</b><br>{% with insp_date=inspection.started_at|default:mis.mis_date %}{{ insp_date|date:"d-m-Y"|default:"—" }}{% endwith %}</td>
   </tr>
   <tr>
-    <td><b>Inspection Date</b>{{ inspection.started_at|date:"d M Y, H:i"|default:"—" }}</td>
-    <td><b>Field Executive</b>{{ inspection.field_executive|default:"—" }}</td>
+    <td><b>Branch</b><br>{{ mis.branch.name }}</td>
+    <td><b>Location</b><br>{{ mis.inspection_location|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Ref No / Lead ID</b><br>{% firstof mis.insurance_reference_number mis.lead_reference_id "—" %}</td>
+    <td><b>Field Executive</b><br>{{ inspection.field_executive.get_full_name|default:inspection.field_executive|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Customer Name</b><br>{{ mis.customer.name }}</td>
+    <td><b>Mobile No</b><br>{{ mis.customer.mobile }}</td>
   </tr>
 </table>
 
 <div class="section-title">Vehicle Details</div>
 <table class="grid">
   <tr>
-    <td><b>Vehicle No.</b><br>{{ mis.vehicle.registration_number }}</td>
-    <td><b>Make / Model</b><br>{{ mis.vehicle.make }} {{ mis.vehicle.model }}</td>
-    <td><b>Year</b><br>{{ mis.vehicle.manufacturing_year }}</td>
-    <td><b>Fuel</b><br>{{ mis.vehicle.fuel_type }}</td>
+    <td><b>Vehicle Type</b><br>{{ mis.vehicle.vehicle_type.name }}</td>
+    <td><b>Engine No.</b><br>{{ mis.vehicle.engine_number|default:"—" }}</td>
   </tr>
   <tr>
+    <td><b>Vehicle No.</b><br>{{ mis.vehicle.registration_number }}</td>
     <td><b>Chassis No.</b><br>{{ mis.vehicle.chassis_number|default:"—" }}</td>
-    <td><b>Engine No.</b><br>{{ mis.vehicle.engine_number|default:"—" }}</td>
-    <td><b>Odometer</b><br>{{ inspection.odometer_reading|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Make / Model</b><br>{{ mis.vehicle.make.name }} {{ mis.vehicle.model.name }}</td>
+    <td><b>ODO Meter (KM)</b><br>{{ inspection.odometer_reading|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Manufacturing Year</b><br>{{ mis.vehicle.manufacturing_year }}</td>
+    <td><b>Fuel Used</b><br>{{ mis.vehicle.fuel_type.name }}</td>
+  </tr>
+  <tr>
     <td><b>Engine Condition</b><br>{{ inspection.engine_condition|default:"—" }}</td>
+    <td><b>Accessories Notes</b><br>{{ inspection.accessories_condition_notes|default:"—" }}</td>
   </tr>
 </table>
 
-<div class="section-title">Body Inspection</div>
+<div class="section-title">Vehicle Body / Spare Parts</div>
 <table class="grid">
   {% for r in item_results %}
-    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
     <td><b>{{ r.item.name }}</b><br><span class="{% if r.condition.is_positive %}flag-ok{% else %}flag-bad{% endif %}">{{ r.condition.name }}</span></td>
-    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
-  {% empty %}<tr><td>No checklist recorded.</td></tr>{% endfor %}
+    {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td colspan="2">No checklist recorded.</td></tr>{% endfor %}
 </table>
 
-<div class="section-title">Glass Inspection</div>
+<div class="section-title">Glass</div>
 <table class="grid">
   {% for r in glass_results %}
-    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
     <td><b>{{ r.item.name }}</b><br><span class="{% if r.condition.is_positive %}flag-ok{% else %}flag-bad{% endif %}">{{ r.condition.name }}</span></td>
-    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
-  {% empty %}<tr><td>No glass checklist recorded.</td></tr>{% endfor %}
+    {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td colspan="2">No glass checklist recorded.</td></tr>{% endfor %}
 </table>
 
 <div class="section-title">Accessories</div>
 <table class="grid">
   {% for r in accessory_results %}
-    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
     <td><b>{{ r.item.name }}</b><br>{{ r.present|yesno:"Present,Not Present" }}</td>
-    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
-  {% empty %}<tr><td>No accessories recorded.</td></tr>{% endfor %}
+    {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td colspan="2">No accessories recorded.</td></tr>{% endfor %}
 </table>
 
 {% if previous_insurance %}
-<div class="section-title">Previous Insurance</div>
+<div class="section-title">Previous Insurance Details</div>
 <table class="grid">
   <tr>
-    <td><b>Previous Insurer</b><br>{{ previous_insurance.previous_insurer|default:"—" }}</td>
-    <td><b>Policy Number</b><br>{{ previous_insurance.policy_number|default:"—" }}</td>
-    <td><b>Previous Claim</b><br>{{ previous_insurance.had_previous_claim|yesno:"Yes,No" }}</td>
+    <td><b>Insurer Name</b><br>{{ previous_insurance.previous_insurer|default:"—" }}</td>
+    <td><b>Policy No</b><br>{{ previous_insurance.policy_number|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Expiry</b><br>{{ previous_insurance.policy_end_date|date:"d-m-Y"|default:"—" }}</td>
+    <td><b>Claim Experience</b><br>{{ previous_insurance.had_previous_claim|yesno:"Yes,No" }}</td>
+  </tr>
+  <tr>
     <td><b>No Claim Bonus</b><br>{{ previous_insurance.no_claim_bonus_percent }}%</td>
+    <td><b>Remarks</b><br>{{ previous_insurance.remarks|default:"—" }}</td>
   </tr>
 </table>
 {% endif %}
@@ -116,18 +230,46 @@
 <div class="section-title">Document Verification</div>
 <table class="grid">
   {% for d in documents %}
-    {% if forloop.counter0|divisibleby:4 %}<tr>{% endif %}
+    {% if forloop.counter0|divisibleby:2 %}<tr>{% endif %}
     <td><b>{{ d.get_document_type_display }}</b><br><span class="{% if d.verified %}flag-ok{% else %}flag-bad{% endif %}">{{ d.verified|yesno:"Verified,Pending" }}</span></td>
-    {% if forloop.counter|divisibleby:4 or forloop.last %}</tr>{% endif %}
-  {% empty %}<tr><td>No documents recorded.</td></tr>{% endfor %}
+    {% if forloop.counter|divisibleby:2 or forloop.last %}</tr>{% endif %}
+  {% empty %}<tr><td colspan="2">No documents recorded.</td></tr>{% endfor %}
 </table>
 
-<div class="section-title">Photographic Evidence</div>
+<div class="decl-box">
+  <div class="decl-title">Declaration of Owner</div>
+  <p>I hereby confirm and declare that the above-mentioned identification details of my vehicle, as well as the damages to the vehicle noted by the inspecting official, are correct. Nothing has been hidden or undisclosed.</p>
+  <p>I further confirm that the motor vehicle for insurance, after a break in cover, has not met with any accident giving rise to any claim by a third party for injury or death caused to any person, property, or the insured vehicle during the period following the expiry of any previous insurance, till the moment it is proposed for insurance.</p>
+  <p>I also agree that damages mentioned above shall be excluded in the event of any claim being lodged.</p>
+</div>
+
+<div class="qc-block">
+  <div class="qc-fields">
+    <div><b>QC Status</b> {{ latest_qc.get_decision_display|default:"Not yet reviewed" }}</div>
+    <div><b>QC Remarks</b> {{ latest_qc.remarks|default:"—" }}</div>
+    <div><b>QC Executive</b> {{ latest_qc.qc_executive.get_full_name|default:latest_qc.qc_executive|default:"—" }}</div>
+    <div><b>QC Date</b> {{ latest_qc.reviewed_at|date:"d-m-Y"|default:"—" }}</div>
+    <div><b>QC Time</b> {{ latest_qc.reviewed_at|date:"h:i A"|default:"—" }}</div>
+  </div>
+  <div>
+    <div class="stamp">ACIS<br>INSPECTION<br>VERIFIED</div>
+    <div class="signature-caption">Signature of<br>Inspecting Officer</div>
+  </div>
+</div>
+
+<div class="page-break"></div>
+<div class="section-title">Vehicle Photos</div>
 <div class="photo-grid">
   {% for row in photo_rows %}
     <div class="cell">
       {% if row.uri %}<img src="{{ row.uri }}">{% endif %}
-      <div class="cap">{{ row.photo.get_category_display }}</div>
+      <div class="caption">
+        <span class="cat">{{ row.photo.get_category_display }}</span><br>
+        <span class="geo">
+          {% with cap_dt=row.photo.capture_datetime|default:row.photo.uploaded_at %}{{ cap_dt|date:"d M Y, H:i" }}{% endwith %}
+          {% if row.photo.latitude and row.photo.longitude %} · {{ row.photo.latitude }}, {{ row.photo.longitude }}{% endif %}
+        </span>
+      </div>
     </div>
   {% empty %}<p>No photos attached.</p>{% endfor %}
 </div>
@@ -143,28 +285,6 @@
     </div>
   </div>
 {% empty %}<p>No videos attached.</p>{% endfor %}
-
-<div class="section-title">QC Status</div>
-<table class="grid">
-  <tr>
-    <td><b>Decision</b><br>{{ latest_qc.get_decision_display|default:"Not yet reviewed" }}</td>
-    <td><b>QC Executive</b><br>{{ latest_qc.qc_executive|default:"—" }}</td>
-    <td><b>Reviewed</b><br>{{ latest_qc.reviewed_at|date:"d M Y, H:i"|default:"—" }}</td>
-    <td><b>Remarks</b><br>{{ latest_qc.remarks|default:"—" }}</td>
-  </tr>
-</table>
-
-<div class="decl">
-  <b>Declaration</b>
-  <ul>
-    <li>This inspection was carried out by the field executive named above at the location and time recorded in the system.</li>
-    <li>The condition of each item listed reflects what was observed and photographed/recorded on the date of inspection only.</li>
-    <li>Any damage not noted in this report but later identified is not covered by this inspection.</li>
-    <li>This report is generated by ACIS and is intended solely for the insurer and policyholder named above.</li>
-  </ul>
-</div>
-
-<div class="footer">ACIS — Insurance Inspection &amp; MIS Management System · Report {{ mis.mis_number }} v{{ version }}</div>
 
 </body>
 </html>

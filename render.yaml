@@ -1,0 +1,39 @@
+databases:
+  - name: acis-db
+    plan: free
+    databaseName: acis
+    user: acis
+
+services:
+  - type: web
+    name: acis
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    healthCheckPath: /accounts/login/
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings.prod
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DEBUG
+        value: "False"
+      # ALLOWED_HOSTS is deliberately omitted — prod.py auto-trusts Render's
+      # own RENDER_EXTERNAL_HOSTNAME. Add this back with a comma-separated
+      # list once you point a custom domain at the service.
+      - key: DATABASE_URL
+        fromDatabase:
+          name: acis-db
+          property: connectionString
+      - key: TIME_ZONE
+        value: Asia/Kolkata
+      # No Redis/worker service is defined: nothing in the codebase calls
+      # .delay() yet (see apps/inspections/tasks.py) — video processing
+      # runs synchronously, so Celery infra isn't needed until that changes.
+      # Set these two only once you've created an S3-compatible bucket for
+      # media (photos/videos) — the local disk on a Render web service does
+      # not persist across deploys otherwise:
+      # - key: AWS_STORAGE_BUCKET_NAME
+      #   value: ""
+      # - key: AWS_S3_REGION_NAME
+      #   value: ""

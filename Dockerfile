@@ -6,5 +6,5 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/prod.txt
 COPY . .
-RUN mkdir -p logs staticfiles
-CMD ["gunicorn", "config.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
+RUN mkdir -p logs staticfiles && chmod +x docker-entrypoint.sh
+ENTRYPOINT ["./docker-entrypoint.sh"]

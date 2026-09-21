@@ -57,6 +57,7 @@ AUTH_USER_MODEL = "accounts.User"
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "corsheaders.middleware.CorsMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -152,6 +153,17 @@ STATICFILES_DIRS = [BASE_DIR / "static"]
 
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+# Static files are served by WhiteNoise directly from gunicorn — no
+# separate nginx/CDN needed for a single-service deploy (e.g. Render).
+# The "default" (media) backend is overridden in prod.py when
+# AWS_STORAGE_BUCKET_NAME is set; otherwise media stays on local disk,
+# which is NOT persistent across deploys unless that disk is a mounted
+# volume (e.g. a Render persistent Disk).
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 

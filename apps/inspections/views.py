@@ -55,6 +55,8 @@ def workspace(request, pk):
         context["results_by_item"] = {r.item_id: r for r in inspection.accessory_results.select_related("condition")}
     elif tab == "photos":
         context["photos"] = inspection.photos.all()
+        context["required_photo_categories"] = [c for c in PhotoCategory.choices if c[0] != PhotoCategory.CHASSIS]
+        context["additional_photo_categories"] = [c for c in PhotoCategory.choices if c[0] != PhotoCategory.CHASSIS]
     elif tab == "videos":
         context["videos"] = inspection.videos.filter(active=True)
     elif tab == "documents":
@@ -118,7 +120,18 @@ def upload_photo(request, pk):
         messages.error(request, "No file received.")
         return redirect(f"/inspections/{pk}/?tab=photos")
 
-    category = request.POST.get("category", PhotoCategory.OTHER)
+    slot = request.POST.get("slot", "required")
+    slot_limits = {"required": 14, "chassis": 1, "additional": 4}
+    max_files = slot_limits.get(slot, 14)
+    if len(files) > max_files:
+        messages.error(
+            request,
+            f"That upload allows at most {max_files} file{'s' if max_files != 1 else ''} "
+            f"at a time — you selected {len(files)}. Nothing was uploaded; please reselect.",
+        )
+        return redirect(f"/inspections/{pk}/?tab=photos")
+
+    category = PhotoCategory.CHASSIS if slot == "chassis" else request.POST.get("category", PhotoCategory.OTHER)
     latitude = request.POST.get("latitude") or None
     longitude = request.POST.get("longitude") or None
 
