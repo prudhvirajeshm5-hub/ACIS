@@ -19,15 +19,15 @@ class MISDetailsForm(forms.ModelForm):
     class Meta:
         model = MIS
         fields = ["mis_date", "insurance_company", "branch", "insurance_reference_number",
-                  "lead_reference_id", "inspection_type", "intimator", "remarks"]
+                  "inspection_type", "intimator", "intimator_email", "remarks"]
         widgets = {
             "mis_date": forms.DateInput(attrs=_w({"type": "date"})),
             "insurance_company": forms.Select(attrs=_w()),
             "branch": forms.Select(attrs=_w()),
             "insurance_reference_number": forms.TextInput(attrs=_w()),
-            "lead_reference_id": forms.TextInput(attrs=_w()),
             "inspection_type": forms.TextInput(attrs=_w()),
             "intimator": forms.TextInput(attrs=_w()),
+            "intimator_email": forms.EmailInput(attrs=_w()),
             "remarks": forms.Textarea(attrs=_w({"rows": 2})),
         }
 

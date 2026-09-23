@@ -56,6 +56,7 @@ class MIS(UUIDModel, TimeStampedModel):
     lead_reference_id = models.CharField(max_length=60, blank=True)
     inspection_type = models.CharField(max_length=60, default="Pre-Policy Inspection")
     intimator = models.CharField(max_length=150, blank=True)
+    intimator_email = models.EmailField(blank=True)
     remarks = models.TextField(blank=True)
 
     customer = models.ForeignKey("customers.Customer", on_delete=models.PROTECT, related_name="mis_records")
