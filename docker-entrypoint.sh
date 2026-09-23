@@ -1,8 +1,4 @@
 #!/bin/sh
-# Runs once per deploy, before gunicorn starts. Every command here is
-# idempotent (see the docstrings in seed_roles.py / seed_masters.py), so
-# it's safe to run on every boot rather than wiring a separate Render
-# pre-deploy step (which is a paid-plan-only feature).
 set -e
 
 echo "Running migrations..."
@@ -16,6 +12,25 @@ python manage.py seed_masters
 
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
+
+if [ -n "$DJANGO_SUPERUSER_USERNAME" ] && [ -n "$DJANGO_SUPERUSER_PASSWORD" ]; then
+  echo "Ensuring superuser exists..."
+  python manage.py shell -c "
+from django.contrib.auth import get_user_model
+import os
+User = get_user_model()
+username = os.environ['DJANGO_SUPERUSER_USERNAME']
+email = os.environ.get('DJANGO_SUPERUSER_EMAIL', '')
+password = os.environ['DJANGO_SUPERUSER_PASSWORD']
+user, created = User.objects.get_or_create(username=username, defaults={'email': email})
+user.email = email or user.email
+user.is_staff = True
+user.is_superuser = True
+user.set_password(password)
+user.save()
+print('Superuser created' if created else 'Superuser updated')
+"
+fi
 
 echo "Starting gunicorn..."
 exec gunicorn config.wsgi:application --bind "0.0.0.0:${PORT:-8000}" --workers 3
