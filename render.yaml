@@ -10,7 +10,7 @@ services:
     runtime: docker
     dockerfilePath: ./Dockerfile
     plan: free
-    healthCheckPath: /accounts/login/
+    healthCheckPath: /login/
     envVars:
       - key: DJANGO_SETTINGS_MODULE
         value: config.settings.prod
