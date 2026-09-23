@@ -53,11 +53,6 @@ class VehicleForm(forms.ModelForm):
     """Section 3 — Vehicle Details."""
     class Meta:
         model = Vehicle
-        fields = ["registration_number", "vehicle_type", "make", "model", "fuel_type",
-                  "manufacturing_year", "engine_number", "chassis_number"]
-        widgets = {f: forms.TextInput(attrs=_w()) for f in
-                   ["registration_number", "engine_number", "chassis_number", "manufacturing_year"]}
-
 
 class AssignmentForm(forms.ModelForm):
     """Section 4 — Inspection Assignment."""

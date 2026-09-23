@@ -6,6 +6,6 @@ from .models import Vehicle
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
     list_display = ["registration_number", "make", "model", "manufacturing_year", "owner"]
-    search_fields = ["registration_number", "chassis_number", "engine_number", "owner__name"]
-    list_filter = ["vehicle_type", "make", "fuel_type"]
-    autocomplete_fields = ["vehicle_type", "make", "model", "fuel_type", "owner"]
+    search_fields = ["registration_number", "make", "model", "owner__name"]
+    list_filter = ["vehicle_type", "fuel_type"]
+    autocomplete_fields = ["fuel_type", "owner"]

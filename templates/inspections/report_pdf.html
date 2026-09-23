@@ -161,15 +161,11 @@
 <div class="section-title">Vehicle Details</div>
 <table class="grid">
   <tr>
-    <td><b>Vehicle Type</b><br>{{ mis.vehicle.vehicle_type.name }}</td>
-    <td><b>Engine No.</b><br>{{ mis.vehicle.engine_number|default:"—" }}</td>
-  </tr>
-  <tr>
+    <td><b>Vehicle Type</b><br>{{ mis.vehicle.get_vehicle_type_display }}</td>
     <td><b>Vehicle No.</b><br>{{ mis.vehicle.registration_number }}</td>
-    <td><b>Chassis No.</b><br>{{ mis.vehicle.chassis_number|default:"—" }}</td>
   </tr>
   <tr>
-    <td><b>Make / Model</b><br>{{ mis.vehicle.make.name }} {{ mis.vehicle.model.name }}</td>
+    <td><b>Make / Model</b><br>{{ mis.vehicle.make }} {{ mis.vehicle.model }}</td>
     <td><b>ODO Meter (KM)</b><br>{{ inspection.odometer_reading|default:"—" }}</td>
   </tr>
   <tr>
