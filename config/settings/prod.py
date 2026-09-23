@@ -5,6 +5,7 @@ DEBUG = False
 INSTALLED_APPS += ["axes"]  # noqa: F405
 MIDDLEWARE = ["axes.middleware.AxesMiddleware"] + MIDDLEWARE  # noqa: F405
 AUTHENTICATION_BACKENDS = ["axes.backends.AxesStandaloneBackend"] + AUTHENTICATION_BACKENDS  # noqa: F405
+AXES_ENABLED = False  # login-lockout protection turned off
 
 if not ALLOWED_HOSTS:  # noqa: F405
     raise RuntimeError("ALLOWED_HOSTS must be set explicitly in production (.env)")
