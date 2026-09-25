@@ -53,15 +53,13 @@ class VehicleForm(forms.ModelForm):
     """Section 3 — Vehicle Details."""
     class Meta:
         model = Vehicle
-        fields = ["registration_number", "vehicle_type", "make", "model", "fuel_type",
-                  "manufacturing_year"]
+        fields = ["registration_number", "vehicle_type", "make", "model", "fuel_type"]
         widgets = {
             "registration_number": forms.TextInput(attrs=_w()),
             "vehicle_type": forms.Select(attrs=_w()),
             "make": forms.TextInput(attrs=_w()),
             "model": forms.TextInput(attrs=_w()),
             "fuel_type": forms.Select(attrs=_w()),
-            "manufacturing_year": forms.TextInput(attrs=_w()),
         }
 
 

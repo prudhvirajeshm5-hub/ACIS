@@ -14,7 +14,7 @@ class Vehicle(UUIDModel, TimeStampedModel):
     make = models.CharField(max_length=100)
     model = models.CharField(max_length=100)
     fuel_type = models.ForeignKey("masters.FuelType", on_delete=models.PROTECT)
-    manufacturing_year = models.PositiveSmallIntegerField()
+    manufacturing_year = models.PositiveSmallIntegerField(null=True, blank=True)
     owner = models.ForeignKey("customers.Customer", on_delete=models.PROTECT, related_name="vehicles")
 
     class Meta:
