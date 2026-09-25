@@ -1,21 +1,72 @@
 {% extends "base/base.html" %}
+{% block page_title %}Edit {{ mis.mis_number }}{% endblock %}
 {% block content %}
-<div class="max-w-3xl mx-auto">
-  <h1>Edit {{ mis.mis_number }}</h1>
-  <form method="post" novalidate>
-    {% csrf_token %}
-    <h2>Inspection Details</h2>
-    {{ details.as_p }}
-    <h2>Customer Details</h2>
-    {{ customer.as_p }}
-    <h2>Vehicle Details</h2>
-    {{ vehicle.as_p }}
-    <h2>Inspection Assignment</h2>
-    {{ assignment.as_p }}
-    <div style="margin-top:1.5rem;">
-      <a href="{% url 'mis:detail' pk=mis.pk %}" class="input">Cancel</a>
-      <button type="submit" class="input">Save changes</button>
-    </div>
-  </form>
+<div class="page-head">
+  <div>
+    <h1>Edit {{ mis.mis_number }}</h1>
+    <p>Update inspection, customer, vehicle and assignment details.</p>
+  </div>
+  <a class="btn btn-secondary" href="{% url 'mis:detail' pk=mis.pk %}">Cancel</a>
 </div>
+
+<form method="post" novalidate>
+  {% csrf_token %}
+
+  <div class="card">
+    <h3>Inspection Details</h3>
+    <div class="form-grid">
+      {% for field in details %}
+        <div class="form-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Customer Details</h3>
+    <div class="form-grid">
+      {% for field in customer %}
+        <div class="form-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Vehicle Details</h3>
+    <div class="form-grid">
+      {% for field in vehicle %}
+        <div class="form-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>Inspection Assignment</h3>
+    <div class="form-grid">
+      {% for field in assignment %}
+        <div class="form-field">
+          <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+          {{ field }}
+          {% if field.errors %}<p class="field-error">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:8px;">
+    <a class="btn btn-secondary" href="{% url 'mis:detail' pk=mis.pk %}">Cancel</a>
+    <button class="btn btn-primary" type="submit">Save changes</button>
+  </div>
+</form>
 {% endblock %}
