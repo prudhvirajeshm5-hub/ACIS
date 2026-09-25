@@ -55,6 +55,8 @@ class Inspection(UUIDModel, TimeStampedModel):
     verified_fuel_type = models.ForeignKey(
         "masters.FuelType", null=True, blank=True, on_delete=models.SET_NULL, related_name="+"
     )
+    verified_manufacturing_year = models.PositiveSmallIntegerField(null=True, blank=True)
+    vehicle_colour = models.CharField(max_length=40, blank=True)
 
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
     longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)

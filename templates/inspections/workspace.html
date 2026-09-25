@@ -97,6 +97,18 @@
           {% endfor %}
         </select>
       </div>
+      <div class="field">
+        <label for="odometer_reading">Odometer Reading</label>
+        <input type="number" id="odometer_reading" name="odometer_reading" value="{{ inspection.odometer_reading|default:'' }}">
+      </div>
+      <div class="field">
+        <label for="verified_manufacturing_year">Manufacturing Year</label>
+        <input type="number" id="verified_manufacturing_year" name="verified_manufacturing_year" value="{{ inspection.verified_manufacturing_year|default:'' }}">
+      </div>
+      <div class="field">
+        <label for="vehicle_colour">Vehicle Colour</label>
+        <input type="text" id="vehicle_colour" name="vehicle_colour" value="{{ inspection.vehicle_colour }}">
+      </div>
     </div>
     <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Vehicle Details</button></div>
   </form>

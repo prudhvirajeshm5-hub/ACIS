@@ -119,9 +119,17 @@ def save_vehicle_details(request, pk):
     inspection = _get_inspection(pk)
     inspection.chassis_number = request.POST.get("chassis_number", "").strip()
     inspection.engine_number = request.POST.get("engine_number", "").strip()
+    inspection.vehicle_colour = request.POST.get("vehicle_colour", "").strip()
     fuel_type_id = request.POST.get("verified_fuel_type") or None
     inspection.verified_fuel_type_id = fuel_type_id
-    inspection.save(update_fields=["chassis_number", "engine_number", "verified_fuel_type"])
+    odometer = request.POST.get("odometer_reading") or None
+    inspection.odometer_reading = odometer
+    year = request.POST.get("verified_manufacturing_year") or None
+    inspection.verified_manufacturing_year = year
+    inspection.save(update_fields=[
+        "chassis_number", "engine_number", "vehicle_colour",
+        "verified_fuel_type", "odometer_reading", "verified_manufacturing_year",
+    ])
     messages.success(request, "Vehicle verification details saved.")
     return redirect(f"/inspections/{pk}/?tab=vehicle")
 
