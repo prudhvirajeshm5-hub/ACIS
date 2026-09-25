@@ -9,6 +9,7 @@ urlpatterns = [
     path("<uuid:pk>/checklist/save/", views.save_checklist, name="save_checklist"),
     path("<uuid:pk>/glass/save/", views.save_glass, name="save_glass"),
     path("<uuid:pk>/accessories/save/", views.save_accessories, name="save_accessories"),
+    path("<uuid:pk>/vehicle/save/", views.save_vehicle_details, name="save_vehicle_details"),
     path("<uuid:pk>/photos/upload/", views.upload_photo, name="upload_photo"),
     path("<uuid:pk>/videos/upload/", views.upload_video, name="upload_video"),
     path("<uuid:pk>/documents/<str:document_type>/toggle/", views.toggle_document, name="toggle_document"),

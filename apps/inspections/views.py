@@ -7,7 +7,7 @@ from django.views.decorators.http import require_POST
 
 from apps.audit.utils import log_action
 from apps.masters.models import (
-    AccessoryMaster, ConditionOption, GlassItemMaster, InspectionItemMaster, VideoCategoryMaster,
+    AccessoryMaster, ConditionOption, FuelType, GlassItemMaster, InspectionItemMaster, VideoCategoryMaster,
 )
 
 from .models import (
@@ -35,6 +35,7 @@ def workspace(request, pk):
         "active_tab": tab,
         "tabs": [
             ("checklist", "Body Checklist"), ("glass", "Glass"), ("accessories", "Accessories"),
+            ("vehicle", "Vehicle Verification"),
             ("photos", "Photos"), ("videos", "Videos"), ("documents", "Documents"),
             ("previous", "Previous Insurance"), ("timeline", "Timeline"),
         ],
@@ -53,6 +54,8 @@ def workspace(request, pk):
     elif tab == "accessories":
         context["accessory_items"] = AccessoryMaster.objects.filter(active=True)
         context["results_by_item"] = {r.item_id: r for r in inspection.accessory_results.select_related("condition")}
+    elif tab == "vehicle":
+        context["fuel_types"] = FuelType.objects.filter(active=True)
     elif tab == "photos":
         context["photos"] = inspection.photos.all()
         context["required_photo_categories"] = [c for c in PhotoCategory.choices if c[0] != PhotoCategory.CHASSIS]
@@ -108,6 +111,19 @@ def save_accessories(request, pk):
         )
     messages.success(request, "Accessories saved.")
     return redirect(f"/inspections/{pk}/?tab=accessories")
+
+
+@login_required
+@require_POST
+def save_vehicle_details(request, pk):
+    inspection = _get_inspection(pk)
+    inspection.chassis_number = request.POST.get("chassis_number", "").strip()
+    inspection.engine_number = request.POST.get("engine_number", "").strip()
+    fuel_type_id = request.POST.get("verified_fuel_type") or None
+    inspection.verified_fuel_type_id = fuel_type_id
+    inspection.save(update_fields=["chassis_number", "engine_number", "verified_fuel_type"])
+    messages.success(request, "Vehicle verification details saved.")
+    return redirect(f"/inspections/{pk}/?tab=vehicle")
 
 
 @login_required

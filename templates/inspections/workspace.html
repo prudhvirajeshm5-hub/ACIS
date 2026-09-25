@@ -76,6 +76,31 @@
     <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Accessories</button></div>
   </form>
 
+{% elif active_tab == "vehicle" %}
+  <form method="post" action="{% url 'inspections:save_vehicle_details' inspection.pk %}">
+    {% csrf_token %}
+    <div class="form-grid">
+      <div class="field">
+        <label for="chassis_number">Chassis Number</label>
+        <input type="text" id="chassis_number" name="chassis_number" value="{{ inspection.chassis_number }}">
+      </div>
+      <div class="field">
+        <label for="engine_number">Engine Number</label>
+        <input type="text" id="engine_number" name="engine_number" value="{{ inspection.engine_number }}">
+      </div>
+      <div class="field">
+        <label for="verified_fuel_type">Fuel Type</label>
+        <select id="verified_fuel_type" name="verified_fuel_type">
+          <option value="">---------</option>
+          {% for ft in fuel_types %}
+            <option value="{{ ft.id }}" {% if inspection.verified_fuel_type_id == ft.id %}selected{% endif %}>{{ ft.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:16px;"><button class="btn btn-primary" type="submit">Save Vehicle Details</button></div>
+  </form>
+
 {% elif active_tab == "photos" %}
   <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-bottom:18px;">
 
