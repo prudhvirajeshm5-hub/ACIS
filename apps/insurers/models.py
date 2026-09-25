@@ -19,16 +19,14 @@ class InsuranceCompany(UUIDModel, TimeStampedModel, ActivatableModel):
 
 
 class InsuranceBranch(UUIDModel, TimeStampedModel, ActivatableModel):
-    company = models.ForeignKey(InsuranceCompany, on_delete=models.PROTECT, related_name="branches")
+    companies = models.ManyToManyField(InsuranceCompany, related_name="branches", blank=True)
     name = models.CharField(max_length=150)
     code = models.CharField(max_length=20, blank=True)
     district = models.ForeignKey("masters.District", on_delete=models.PROTECT, related_name="insurance_branches")
     address = models.TextField(blank=True)
 
     class Meta:
-        ordering = ["company__name", "name"]
-        constraints = [models.UniqueConstraint(fields=["company", "name"], name="uniq_branch_per_company")]
-        indexes = [models.Index(fields=["company"])]
+        ordering = ["name"]
 
     def __str__(self):
-        return f"{self.company.name} — {self.name}"
+        return self.name

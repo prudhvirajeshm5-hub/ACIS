@@ -22,9 +22,9 @@ class InsuranceCompanyForm(forms.ModelForm):
 class InsuranceBranchForm(forms.ModelForm):
     class Meta:
         model = InsuranceBranch
-        fields = ["company", "name", "code", "district", "address"]
+        fields = ["companies", "name", "code", "district", "address"]
         widgets = {
-            "company": forms.Select(attrs=_w()),
+            "companies": forms.CheckboxSelectMultiple(),
             "name": forms.TextInput(attrs=_w()),
             "code": forms.TextInput(attrs=_w()),
             "district": forms.Select(attrs=_w()),
@@ -34,4 +34,4 @@ class InsuranceBranchForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields["district"].queryset = District.objects.filter(active=True)
-        self.fields["company"].queryset = InsuranceCompany.objects.filter(active=True)
+        self.fields["companies"].queryset = InsuranceCompany.objects.filter(active=True)

@@ -44,6 +44,7 @@ class BranchCreateView(LoginRequiredMixin, PermissionRequiredMixin, View):
         form = InsuranceBranchForm(request.POST)
         if form.is_valid():
             branch = form.save()
-            messages.success(request, f"{branch.name} branch added under {branch.company}.")
+            company_names = ", ".join(c.name for c in branch.companies.all())
+            messages.success(request, f"{branch.name} branch added" + (f" under {company_names}." if company_names else "."))
             return redirect("insurers:list")
         return render(request, "insurers/branch_form.html", {"form": form})

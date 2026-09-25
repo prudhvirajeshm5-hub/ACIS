@@ -84,7 +84,8 @@ class ClientScopingTests(TestCase):
         self.masters = make_masters()
         self.company_a, self.branch_a = make_insurer(self.masters["district"])
         self.company_b = InsuranceCompany.objects.create(name="ICICI Lombard", code="ICI")
-        self.branch_b = InsuranceBranch.objects.create(company=self.company_b, name="Pune Kothrud", district=self.masters["district"])
+        self.branch_b = InsuranceBranch.objects.create(name="Pune Kothrud", district=self.masters["district"])
+        self.branch_b.companies.add(self.company_b)
         self.customer, self.vehicle = make_customer_and_vehicle(self.masters)
 
         self.mis_a = MIS.objects.create(mis_date="2026-09-07", insurance_company=self.company_a, branch=self.branch_a, customer=self.customer, vehicle=self.vehicle)

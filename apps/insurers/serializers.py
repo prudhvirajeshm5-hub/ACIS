@@ -12,4 +12,4 @@ class InsuranceCompanySerializer(serializers.ModelSerializer):
 class InsuranceBranchSerializer(serializers.ModelSerializer):
     class Meta:
         model = InsuranceBranch
-        fields = ["id", "company", "name", "code", "district", "address", "active"]
+        fields = ["id", "companies", "name", "code", "district", "address", "active"]

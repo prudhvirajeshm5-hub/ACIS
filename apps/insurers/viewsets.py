@@ -13,7 +13,7 @@ class InsuranceCompanyViewSet(viewsets.ModelViewSet):
 
 
 class InsuranceBranchViewSet(viewsets.ModelViewSet):
-    queryset = InsuranceBranch.objects.filter(active=True).select_related("company", "district")
+    queryset = InsuranceBranch.objects.filter(active=True).select_related("district").prefetch_related("companies")
     serializer_class = InsuranceBranchSerializer
     permission_classes = [IsAuthenticated]
     filterset_fields = ["company"]
