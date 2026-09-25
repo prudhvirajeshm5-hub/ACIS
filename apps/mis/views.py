@@ -213,3 +213,39 @@ class MISDetailView(LoginRequiredMixin, TemplateView):
             pk=kwargs["pk"],
         )
         return ctx
+
+class MISEditView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """Single-page edit for an existing MIS: all four sections (inspection
+    details, customer, vehicle, assignment) shown together and saved at
+    once. Unlike the create wizard, this writes directly to the existing
+    records — no session buffering needed."""
+    permission_required = "mis.change_mis"
+
+    def get(self, request, pk):
+        mis = get_object_or_404(MIS.objects.select_related("customer", "vehicle"), pk=pk)
+        forms = self._build_forms(request, mis)
+        return render(request, "mis/mis_edit.html", {"mis": mis, **forms})
+
+    def post(self, request, pk):
+        mis = get_object_or_404(MIS.objects.select_related("customer", "vehicle"), pk=pk)
+        forms = self._build_forms(request, mis, data=request.POST)
+
+        if not all(f.is_valid() for f in forms.values()):
+            return render(request, "mis/mis_edit.html", {"mis": mis, **forms})
+
+        forms["customer"].save()
+        forms["vehicle"].save()
+        forms["details"].save(commit=False)
+        forms["assignment"].save(commit=False)
+        mis.save()
+
+        messages.success(request, f"{mis.mis_number} updated.")
+        return redirect("mis:detail", pk=mis.pk)
+
+    def _build_forms(self, request, mis, data=None):
+        return {
+            "details": MISDetailsForm(data=data, instance=mis, user=request.user),
+            "customer": CustomerForm(data=data, instance=mis.customer),
+            "vehicle": VehicleForm(data=data, instance=mis.vehicle),
+            "assignment": AssignmentForm(data=data, instance=mis),
+        }

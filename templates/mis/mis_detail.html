@@ -4,7 +4,10 @@
 <div class="page-head">
   <div><h1>{{ mis.mis_number }} <span class="badge b-info">{{ mis.get_inspection_stage_display }}</span> <span class="badge b-neutral">{{ mis.get_qc_stage_display }}</span></h1>
   <p>Created {{ mis.created_at|date:"d M Y" }} by {{ mis.created_by|default:"—" }}</p></div>
-  {% if mis.inspection.pk %}<a class="btn btn-primary" href="{% url 'inspections:workspace' mis.inspection.pk %}">Open Inspection Workspace</a>{% endif %}
+  <div style="display:flex;gap:8px;">
+    <a class="btn btn-secondary" href="{% url 'mis:edit' pk=mis.pk %}">Edit</a>
+    {% if mis.inspection.pk %}<a class="btn btn-primary" href="{% url 'inspections:workspace' mis.inspection.pk %}">Open Inspection Workspace</a>{% endif %}
+  </div>
 </div>
 
 <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">

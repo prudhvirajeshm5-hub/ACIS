@@ -1,0 +1,21 @@
+{% extends "base/base.html" %}
+{% block content %}
+<div class="max-w-3xl mx-auto">
+  <h1>Edit {{ mis.mis_number }}</h1>
+  <form method="post" novalidate>
+    {% csrf_token %}
+    <h2>Inspection Details</h2>
+    {{ details.as_p }}
+    <h2>Customer Details</h2>
+    {{ customer.as_p }}
+    <h2>Vehicle Details</h2>
+    {{ vehicle.as_p }}
+    <h2>Inspection Assignment</h2>
+    {{ assignment.as_p }}
+    <div style="margin-top:1.5rem;">
+      <a href="{% url 'mis:detail' pk=mis.pk %}" class="input">Cancel</a>
+      <button type="submit" class="input">Save changes</button>
+    </div>
+  </form>
+</div>
+{% endblock %}
