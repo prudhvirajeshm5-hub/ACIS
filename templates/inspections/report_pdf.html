@@ -269,8 +269,8 @@
 
 <div class="page-break"></div>
 <div class="section-title">Vehicle Photos</div>
-<div class="photo-grid">
-  {% for row in photo_rows %}
+{% for row in photo_rows %}
+  {% if forloop.first %}<div class="photo-grid">{% endif %}
     <div class="cell">
       {% if row.uri %}<img src="{{ row.uri }}">{% endif %}
       <div class="caption">
@@ -281,8 +281,13 @@
         </span>
       </div>
     </div>
-  {% empty %}<p>No photos attached.</p>{% endfor %}
-</div>
+  {% if forloop.counter|divisibleby:6 %}
+    </div>
+    {% if not forloop.last %}<div class="page-break"></div><div class="photo-grid">{% endif %}
+  {% elif forloop.last %}
+    </div>
+  {% endif %}
+{% empty %}<p>No photos attached.</p>{% endfor %}
 
 <div class="section-title">Video Evidence</div>
 {% for row in video_rows %}
