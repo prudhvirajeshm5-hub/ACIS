@@ -126,10 +126,14 @@
   </div>
   <div class="remarks-box">
     <div>
-      <div class="remark-lbl">Status Remark</div>
-      <div class="remark-text">
-        {% if latest_qc %}{{ latest_qc.remarks|default:"No remarks provided." }}{% else %}Not yet reviewed by QC.{% endif %}
-      </div>
+      <div class="remark-lbl">Vehicle Number</div>
+      <div class="remark-text">{{ mis.vehicle.registration_number|default:"—" }}</div>
+      <div class="remark-lbl">Chassis Number</div>
+      <div class="remark-text">{{ inspection.chassis_number|default:"—" }}</div>
+      <div class="remark-lbl">Engine Number</div>
+      <div class="remark-text">{{ inspection.engine_number|default:"—" }}</div>
+      <div class="remark-lbl">Vehicle Colour</div>
+      <div class="remark-text">{{ inspection.vehicle_colour|default:"—" }}</div>
     </div>
     <div>
       <div class="remark-lbl">Report Status</div>
