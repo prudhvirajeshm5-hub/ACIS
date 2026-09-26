@@ -223,7 +223,19 @@ def submit(request, pk):
 @login_required
 @require_POST
 def generate_report_view(request, pk):
+    from apps.mis.models import MISQCStage
+
     inspection = _get_inspection(pk)
+    mis = inspection.mis
+
+    if mis.qc_stage not in (MISQCStage.APPROVED, MISQCStage.REJECTED):
+        messages.error(
+            request,
+            "Report cannot be generated until QC review is completed "
+            "(current status: " + mis.get_qc_stage_display() + ").",
+        )
+        return redirect(f"/inspections/{pk}/?tab=documents")
+
     try:
         from .services import generate_report
         report = generate_report(inspection=inspection, generated_by=request.user, request=request)

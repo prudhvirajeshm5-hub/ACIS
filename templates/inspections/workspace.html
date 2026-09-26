@@ -231,7 +231,7 @@
 <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid var(--line);">
   <form method="post" action="{% url 'inspections:generate_report' inspection.pk %}">
     {% csrf_token %}
-    <button class="btn btn-ghost" type="submit">Generate Report</button>
+    <button class="btn btn-ghost" type="submit" {% if mis.qc_stage != "approved" and mis.qc_stage != "rejected" %}disabled title="QC review must be completed first"{% endif %}>Generate Report</button>
   </form>
   <form method="post" action="{% url 'inspections:submit' inspection.pk %}">
     {% csrf_token %}
