@@ -175,6 +175,14 @@
     <td><b>Fuel Used</b><br>{{ mis.vehicle.fuel_type.name }}</td>
   </tr>
   <tr>
+    <td><b>Chassis Number</b><br>{{ inspection.chassis_number|default:"—" }}</td>
+    <td><b>Engine Number</b><br>{{ inspection.engine_number|default:"—" }}</td>
+  </tr>
+  <tr>
+    <td><b>Vehicle Colour</b><br>{{ inspection.vehicle_colour|default:"—" }}</td>
+    <td></td>
+  </tr>
+  <tr>
     <td><b>Engine Condition</b><br>{{ inspection.engine_condition|default:"—" }}</td>
     <td><b>Accessories Notes</b><br>{{ inspection.accessories_condition_notes|default:"—" }}</td>
   </tr>
