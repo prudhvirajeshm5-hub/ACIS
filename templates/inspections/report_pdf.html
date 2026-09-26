@@ -127,7 +127,9 @@
   <div class="remarks-box">
     <div>
       <div class="remark-lbl">Status Remark</div>
-      <div class="remark-text">{{ latest_qc.remarks|default:"Not yet reviewed by QC." }}</div>
+      <div class="remark-text">
+        {% if latest_qc %}{{ latest_qc.remarks|default:"No remarks provided." }}{% else %}Not yet reviewed by QC.{% endif %}
+      </div>
     </div>
     <div>
       <div class="remark-lbl">Report Status</div>
