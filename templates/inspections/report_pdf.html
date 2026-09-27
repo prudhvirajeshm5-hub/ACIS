@@ -92,6 +92,7 @@
     display: flex; align-items: center; justify-content: center; text-align: center;
     font-size: 7px; color: #8991A6; padding: 4px; }
   .stamp-img { width: 70px; height: 70px; object-fit: contain; }
+  .stamp-img { width: 70px; height: 70px; object-fit: contain; }
   .signature-caption { text-align: center; font-size: 8px; color: #4B5670; margin-top: 4px; width: 90px; }
 
   .page-break { page-break-before: always; }
@@ -262,7 +263,7 @@
     <div><b>QC Time</b> {{ latest_qc.reviewed_at|date:"h:i A"|default:"—" }}</div>
   </div>
   <div>
-    {% if stamp_base64 %}<img class="stamp-img" src="data:image/png;base64,{{ stamp_base64 }}">{% else %}<div class="stamp">ACIS<br>INSPECTION<br>VERIFIED</div>{% endif %}
+    {% if stamp_base64 %}<img class="stamp-img" src="data:image/png;base64,{{ stamp_base64 }}">{% else %}{% if stamp_base64 %}<img class="stamp-img" src="data:image/png;base64,{{ stamp_base64 }}">{% else %}<div class="stamp">ACIS<br>INSPECTION<br>VERIFIED</div>{% endif %}{% endif %}
     <div class="signature-caption">Signature of<br>Inspecting Officer</div>
   </div>
 </div>

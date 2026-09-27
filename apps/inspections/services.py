@@ -157,6 +157,14 @@ def generate_report(*, inspection, generated_by, request=None):
     except FileNotFoundError:
         pass
 
+    stamp_base64 = ""
+    stamp_path = os.path.join(settings.BASE_DIR, "static", "img", "stamp.png")
+    try:
+        with open(stamp_path, "rb") as f:
+            stamp_base64 = base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        pass
+
     last = inspection.reports.first()  # ordering = -version
     next_version = (last.version + 1) if last else 1
 
@@ -186,6 +194,7 @@ def generate_report(*, inspection, generated_by, request=None):
         "inspection": inspection,
         "mis": inspection.mis,
         "logo_base64": logo_base64,
+        "stamp_base64": stamp_base64,
         "stamp_base64": stamp_base64,
         "item_results": inspection.item_results.select_related("item", "condition"),
         "glass_results": inspection.glass_results.select_related("item", "condition"),
