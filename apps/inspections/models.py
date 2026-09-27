@@ -50,6 +50,7 @@ class Inspection(UUIDModel, TimeStampedModel):
     engine_condition = models.CharField(max_length=100, blank=True)
     accessories_condition_notes = models.TextField(blank=True)
 
+    inspection_datetime = models.DateTimeField(null=True, blank=True)
     chassis_number = models.CharField(max_length=60, blank=True)
     engine_number = models.CharField(max_length=60, blank=True)
     verified_fuel_type = models.ForeignKey(

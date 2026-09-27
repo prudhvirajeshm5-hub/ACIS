@@ -136,6 +136,8 @@
       <div class="remark-text">{{ mis.vehicle.make|default:"—" }} {{ mis.vehicle.model|default:"" }}</div>
       <div class="remark-lbl">Vehicle Colour</div>
       <div class="remark-text">{{ inspection.vehicle_colour|default:"—" }}</div>
+      <div class="remark-lbl">Inspection Date & Time</div>
+      <div class="remark-text">{{ inspection.inspection_datetime|date:"d-m-Y, h:i A"|default:"—" }}</div>
     </div>
     <div>
       <div class="remark-lbl">Report Status</div>

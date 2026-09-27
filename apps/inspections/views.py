@@ -116,6 +116,8 @@ def save_accessories(request, pk):
 @login_required
 @require_POST
 def save_vehicle_details(request, pk):
+    from django.utils.dateparse import parse_datetime
+
     inspection = _get_inspection(pk)
     inspection.chassis_number = request.POST.get("chassis_number", "").strip()
     inspection.engine_number = request.POST.get("engine_number", "").strip()
@@ -126,9 +128,12 @@ def save_vehicle_details(request, pk):
     inspection.odometer_reading = odometer
     year = request.POST.get("verified_manufacturing_year") or None
     inspection.verified_manufacturing_year = year
+    raw_dt = request.POST.get("inspection_datetime") or None
+    inspection.inspection_datetime = parse_datetime(raw_dt) if raw_dt else None
     inspection.save(update_fields=[
         "chassis_number", "engine_number", "vehicle_colour",
         "verified_fuel_type", "odometer_reading", "verified_manufacturing_year",
+        "inspection_datetime",
     ])
     messages.success(request, "Vehicle verification details saved.")
     return redirect(f"/inspections/{pk}/?tab=vehicle")
