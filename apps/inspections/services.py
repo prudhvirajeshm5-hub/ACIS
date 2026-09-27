@@ -130,14 +130,24 @@ def generate_report(*, inspection, generated_by, request=None):
     """
     import base64
     import io
+    import os
 
     import qrcode
+    from django.conf import settings
     from django.core.files.base import ContentFile
     from django.template.loader import render_to_string
     from django.urls import reverse
     from weasyprint import HTML
 
     from .models import InspectionReport, PhotoCategory
+
+    logo_base64 = ""
+    logo_path = os.path.join(settings.BASE_DIR, "static", "img", "logo.png")
+    try:
+        with open(logo_path, "rb") as f:
+            logo_base64 = base64.b64encode(f.read()).decode()
+    except FileNotFoundError:
+        pass
 
     last = inspection.reports.first()  # ordering = -version
     next_version = (last.version + 1) if last else 1
@@ -167,6 +177,7 @@ def generate_report(*, inspection, generated_by, request=None):
     html_string = render_to_string("inspections/report_pdf.html", {
         "inspection": inspection,
         "mis": inspection.mis,
+        "logo_base64": logo_base64,
         "item_results": inspection.item_results.select_related("item", "condition"),
         "glass_results": inspection.glass_results.select_related("item", "condition"),
         "accessory_results": inspection.accessory_results.select_related("item", "condition"),

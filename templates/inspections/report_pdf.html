@@ -105,8 +105,7 @@
   </div>
   <div class="brandrow">
     <div>
-      <div class="brand">ACIS</div>
-      <div class="tagline">Insurance Inspection &amp; MIS Management System</div>
+      {% if logo_base64 %}<img src="data:image/png;base64,{{ logo_base64 }}" style="height:32px;width:auto;display:block;">{% else %}<div class="brand">ACIS</div>{% endif %}
     </div>
     <div class="tagline">Report v{{ version }} · Generated {% now "d M Y, H:i" %}</div>
   </div>
