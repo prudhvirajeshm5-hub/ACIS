@@ -114,7 +114,6 @@
 </div>
 
 <div class="doc-title">VEHICLE INSPECTION REPORT</div>
-<div class="doc-subtitle">{{ mis.vehicle.make }} {{ mis.vehicle.model }}</div>
 
 <div class="top-block">
   <div class="chassis-box">
@@ -133,6 +132,8 @@
       <div class="remark-text">{{ inspection.chassis_number|default:"—" }}</div>
       <div class="remark-lbl">Engine Number</div>
       <div class="remark-text">{{ inspection.engine_number|default:"—" }}</div>
+      <div class="remark-lbl">Make / Model</div>
+      <div class="remark-text">{{ mis.vehicle.make|default:"—" }} {{ mis.vehicle.model|default:"" }}</div>
       <div class="remark-lbl">Vehicle Colour</div>
       <div class="remark-text">{{ inspection.vehicle_colour|default:"—" }}</div>
     </div>
