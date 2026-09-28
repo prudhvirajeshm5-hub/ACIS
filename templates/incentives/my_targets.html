@@ -1,0 +1,54 @@
+{% extends "base/base.html" %}
+{% block page_title %}My Targets{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>My Targets</h1><p>Your assigned targets, how many cases you have completed, and how many are still pending.</p></div>
+</div>
+
+{% for p in active %}
+<div class="card" style="margin-bottom:18px;">
+  <h3>{{ p.label }} <span>{{ p.start_date|date:"d M" }} to {{ p.end_date|date:"d M Y" }}</span></h3>
+  <p style="font-size:15px;">
+    <b>Target:</b> {{ p.target_count }} &nbsp;&middot;&nbsp;
+    <b>Completed:</b> {{ p.completed }} &nbsp;&middot;&nbsp;
+    <b style="color:var(--bad);">Pending: {{ p.pending }}</b> &nbsp;&middot;&nbsp;
+    <b>Completed today:</b> {{ p.today }}
+  </p>
+  <div style="height:10px;background:var(--paper);border-radius:5px;"><div style="height:10px;width:{{ p.percent }}%;background:var(--accent);border-radius:5px;"></div></div>
+  <p style="margin-top:10px;color:var(--ink-soft);font-size:13px;">
+    {{ p.percent }}% done.
+    {% if p.achieved %}Target achieved.{% elif p.days_left %}{{ p.days_left }} day(s) left, about {{ p.per_day }} case(s) per day needed.{% endif %}
+    {% if p.incentive_amount %}Incentive if achieved: <b>{{ p.incentive_amount }}</b>.{% endif %}
+  </p>
+</div>
+{% empty %}
+<div class="card" style="margin-bottom:18px;"><p>You have no active targets right now.</p></div>
+{% endfor %}
+
+{% if upcoming %}
+<div class="card" style="margin-bottom:18px;">
+  <h3>Upcoming</h3>
+  {% for p in upcoming %}<p>{{ p.label }}: {{ p.target_count }} cases from {{ p.start_date|date:"d M Y" }} to {{ p.end_date|date:"d M Y" }}</p>{% endfor %}
+</div>
+{% endif %}
+
+{% if past %}
+<div class="card">
+  <h3>Past targets</h3>
+  <table>
+    <thead><tr><th>Period</th><th>Type</th><th>Target</th><th>Completed</th><th>Result</th></tr></thead>
+    <tbody>
+    {% for p in past %}
+      <tr>
+        <td>{{ p.start_date|date:"d M" }} to {{ p.end_date|date:"d M Y" }}</td>
+        <td>{{ p.label }}</td>
+        <td>{{ p.target_count }}</td>
+        <td>{{ p.completed }}</td>
+        <td>{% if p.achieved %}<span class="badge b-good">Achieved</span>{% else %}<span class="badge b-bad">{{ p.pending }} short</span>{% endif %}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

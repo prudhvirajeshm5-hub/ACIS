@@ -1,0 +1,50 @@
+{% extends "base/base.html" %}
+{% block page_title %}Targets{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Employee Targets</h1><p>Set a target for an employee and track how many cases are completed and pending.</p></div>
+</div>
+
+<div class="card" style="margin-bottom:18px;">
+  <h3>Assign a target</h3>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:0 16px;">
+      {% for f in form %}
+      <div class="field">
+        <label for="{{ f.id_for_label }}">{{ f.label }}</label>
+        {{ f }}{{ f.errors }}
+      </div>
+      {% endfor %}
+    </div>
+    <button class="btn btn-primary" type="submit">Assign Target</button>
+  </form>
+</div>
+
+<div class="card">
+  <h3>All targets</h3>
+  <table>
+    <thead><tr><th>Employee</th><th>Type</th><th>Period</th><th>Target</th><th>Completed</th><th>Pending</th><th>Today</th><th>Incentive</th><th></th></tr></thead>
+    <tbody>
+    {% for p in rows %}
+      <tr>
+        <td>{{ p.employee.get_full_name|default:p.employee.username }}<div class="sub-cell">{{ p.employee.role_label }}</div></td>
+        <td>{{ p.label }}</td>
+        <td>{{ p.start_date|date:"d M" }} to {{ p.end_date|date:"d M Y" }}</td>
+        <td>{{ p.target_count }}</td>
+        <td>{{ p.completed }} <span class="sub-cell">({{ p.percent }}%)</span></td>
+        <td>{% if p.achieved %}<span class="badge b-good">Achieved</span>{% else %}<b>{{ p.pending }}</b>{% endif %}</td>
+        <td>{{ p.today }}</td>
+        <td>{{ p.incentive_amount|default:"-" }}</td>
+        <td>
+          <form method="post" action="{% url 'incentives:delete' p.id %}" onsubmit="return confirm('Remove this target?');" style="margin:0;">
+            {% csrf_token %}<button class="link-btn" type="submit">Remove</button>
+          </form>
+        </td>
+      </tr>
+    {% empty %}<tr><td colspan="9">No targets assigned yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
