@@ -15,6 +15,7 @@ urlpatterns = [
     path("mis/", include("apps.mis.urls_web", namespace="mis")),
     path("inspections/", include("apps.inspections.urls_web", namespace="inspections")),
     path("qc/", include("apps.qc.urls_web", namespace="qc")),
+    path("chat/", include("apps.chat.urls_web", namespace="chat")),
     path("incentives/", include("apps.incentives.urls_web", namespace="incentives")),
     path("attendance/", include("apps.attendance.urls_web", namespace="attendance")),
 

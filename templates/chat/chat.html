@@ -1,0 +1,55 @@
+{% extends "base/base.html" %}
+{% load static %}
+{% block page_title %}Chat{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/chat.css' %}">
+{{ people|json_script:"chat-people" }}
+<div id="chat-root" class="chat-wrap" data-csrf="{{ csrf_token }}"
+     data-conversations-url="{% url 'chat:conversations' %}"
+     data-messages-tpl="{% url 'chat:messages' '00000000-0000-0000-0000-000000000000' %}"
+     data-send-tpl="{% url 'chat:send' '00000000-0000-0000-0000-000000000000' %}"
+     data-direct-tpl="{% url 'chat:direct' 0 %}"
+     data-groups-url="{% url 'chat:groups' %}">
+  <div class="chat-side">
+    <div class="chat-side-head">
+      <input id="chat-search" type="search" placeholder="Search chats">
+      <div class="chat-side-btns">
+        <button class="btn btn-ghost" id="chat-new" type="button">New chat</button>
+        <button class="btn btn-ghost" id="chat-newgroup" type="button">New group</button>
+      </div>
+    </div>
+    <div id="chat-list" class="chat-list"></div>
+  </div>
+  <div class="chat-main">
+    <div id="chat-empty" class="chat-empty">Select a chat, or start a new one.</div>
+    <div id="chat-thread" class="chat-thread" style="display:none;">
+      <div class="chat-head">
+        <button id="chat-back" class="chat-back" type="button">&larr;</button>
+        <div><div id="chat-title" class="chat-title"></div><div id="chat-sub" class="chat-sub"></div></div>
+      </div>
+      <div id="chat-msgs" class="chat-msgs"></div>
+      <div id="chat-attach" class="chat-attach" style="display:none;">
+        <div><span id="chat-attach-name"></span> <button id="chat-attach-x" type="button">&times;</button></div>
+        <div class="bar"><div id="chat-progress"></div></div>
+      </div>
+      <div class="chat-compose">
+        <label class="chat-clip" title="Attach a photo or video">Attach<input id="chat-file" type="file" accept="image/*,video/*" style="display:none;"></label>
+        <textarea id="chat-text" rows="1" placeholder="Type a message"></textarea>
+        <button id="chat-send" class="btn btn-primary" type="button">Send</button>
+      </div>
+    </div>
+  </div>
+  <div id="chat-modal" class="chat-modal" style="display:none;">
+    <div class="chat-modal-card">
+      <h3 id="chat-modal-title"></h3>
+      <input id="chat-modal-name" placeholder="Group name" style="display:none;">
+      <div id="chat-modal-people" class="chat-modal-people"></div>
+      <div class="chat-modal-actions">
+        <button class="btn btn-ghost" id="chat-modal-cancel" type="button">Cancel</button>
+        <button class="btn btn-primary" id="chat-modal-ok" type="button" style="display:none;">Create group</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="{% static 'js/chat.js' %}"></script>
+{% endblock %}
