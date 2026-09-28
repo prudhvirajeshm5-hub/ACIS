@@ -136,8 +136,10 @@
       <div class="remark-text">{{ mis.vehicle.make|default:"—" }} {{ mis.vehicle.model|default:"" }}</div>
       <div class="remark-lbl">Vehicle Colour</div>
       <div class="remark-text">{{ inspection.vehicle_colour|default:"—" }}</div>
-      <div class="remark-lbl">Inspection Date & Time</div>
-      <div class="remark-text">{{ inspection.inspection_datetime|date:"d-m-Y, h:i A"|default:"—" }}</div>
+      <div class="remark-lbl">Inspection Date</div>
+      <div class="remark-text">{% if latest_qc.inspection_date %}{{ latest_qc.inspection_date|date:"d-m-Y" }}{% else %}{{ inspection.inspection_datetime|date:"d-m-Y"|default:"—" }}{% endif %}</div>
+      <div class="remark-lbl">Inspection Time</div>
+      <div class="remark-text">{% if latest_qc.inspection_time %}{{ latest_qc.inspection_time|time:"h:i A" }}{% else %}{{ inspection.inspection_datetime|date:"h:i A"|default:"—" }}{% endif %}</div>
     </div>
     <div>
       <div class="remark-lbl">Report Status</div>
@@ -264,8 +266,6 @@
     <div><b>QC Executive</b> {{ latest_qc.qc_executive.get_full_name|default:latest_qc.qc_executive|default:"—" }}</div>
     <div><b>QC Date</b> {{ latest_qc.reviewed_at|date:"d-m-Y"|default:"—" }}</div>
     <div><b>QC Time</b> {{ latest_qc.reviewed_at|date:"h:i A"|default:"—" }}</div>
-    <div><b>Inspection Date</b> {{ latest_qc.inspection_date|date:"d-m-Y"|default:"—" }}</div>
-    <div><b>Inspection Time</b> {{ latest_qc.inspection_time|time:"h:i A"|default:"—" }}</div>
   </div>
   <div>
     {% if stamp_base64 %}<img class="stamp-img" src="data:image/png;base64,{{ stamp_base64 }}">{% else %}{% if stamp_base64 %}<img class="stamp-img" src="data:image/png;base64,{{ stamp_base64 }}">{% else %}<div class="stamp">ACIS<br>INSPECTION<br>VERIFIED</div>{% endif %}{% endif %}
