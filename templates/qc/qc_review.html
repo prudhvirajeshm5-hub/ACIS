@@ -38,6 +38,16 @@
           <div><div class="dt">{{ choice.choice_label }}</div></div>
         </label>
       {% endfor %}
+      <div style="display:flex;gap:12px;margin-top:12px;">
+        <div class="field" style="flex:1;">
+          <label for="{{ form.inspection_date.id_for_label }}">Inspection Date</label>
+          {{ form.inspection_date }}{{ form.inspection_date.errors }}
+        </div>
+        <div class="field" style="flex:1;">
+          <label for="{{ form.inspection_time.id_for_label }}">Inspection Time</label>
+          {{ form.inspection_time }}{{ form.inspection_time.errors }}
+        </div>
+      </div>
       <div class="field" style="margin-top:12px;">
         <label for="{{ form.remarks.id_for_label }}">QC Remarks</label>
         {{ form.remarks }}

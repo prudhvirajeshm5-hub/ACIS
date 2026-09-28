@@ -23,6 +23,8 @@ class QCReview(UUIDModel):
     qc_executive = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="qc_reviews")
     decision = models.CharField(max_length=25, choices=QCDecision.choices)
     remarks = models.TextField(blank=True)
+    inspection_date = models.DateField(null=True, blank=True)
+    inspection_time = models.TimeField(null=True, blank=True)
     reviewed_at = models.DateTimeField(auto_now_add=True)
     supersedes = models.ForeignKey("self", null=True, blank=True, on_delete=models.SET_NULL, related_name="superseded_by")
 

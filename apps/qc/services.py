@@ -14,11 +14,12 @@ DECISION_TO_MIS_QC_STAGE = {
 
 
 @transaction.atomic
-def record_qc_decision(*, inspection, qc_executive, decision, remarks):
+def record_qc_decision(*, inspection, qc_executive, decision, remarks, inspection_date=None, inspection_time=None):
     previous = inspection.qc_reviews.first()  # ordering = -reviewed_at
     review = QCReview.objects.create(
         inspection=inspection, qc_executive=qc_executive, decision=decision,
         remarks=remarks, supersedes=previous,
+        inspection_date=inspection_date, inspection_time=inspection_time,
     )
 
     mis = inspection.mis

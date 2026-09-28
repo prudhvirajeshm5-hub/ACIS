@@ -23,6 +23,8 @@ def qc_review(request, pk):
             record_qc_decision(
                 inspection=inspection, qc_executive=request.user,
                 decision=form.cleaned_data["decision"], remarks=form.cleaned_data["remarks"],
+                inspection_date=form.cleaned_data["inspection_date"],
+                inspection_time=form.cleaned_data["inspection_time"],
             )
             messages.success(request, f"QC decision recorded for {inspection.mis.mis_number}.")
             return redirect("mis:list")

@@ -19,5 +19,7 @@ class QCReviewViewSet(mixins.CreateModelMixin, mixins.ListModelMixin, mixins.Ret
             qc_executive=self.request.user,
             decision=serializer.validated_data["decision"],
             remarks=serializer.validated_data.get("remarks", ""),
+            inspection_date=serializer.validated_data.get("inspection_date"),
+            inspection_time=serializer.validated_data.get("inspection_time"),
         )
         serializer.instance = review
