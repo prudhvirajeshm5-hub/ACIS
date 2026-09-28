@@ -1,0 +1,74 @@
+{% extends "base/base.html" %}
+{% block page_title %}Attendance{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Attendance</h1><p>Start your shift when you begin work and end it when you finish. Working hours are calculated automatically.</p></div>
+</div>
+
+<div class="card" style="margin-bottom:18px;">
+  <h3>Today <span>{{ today|date:"l, d M Y" }}</span></h3>
+  {% if not today_record %}
+    <p>You have not started your shift yet.</p>
+    <form method="post" action="{% url 'attendance:start' %}">{% csrf_token %}<button class="btn btn-primary" type="submit">Start Shift</button></form>
+  {% else %}
+    <p><b>Started:</b> {{ today_record.shift_start|date:"h:i A" }}<br>
+       <b>Ended:</b> {% if today_record.shift_end %}{{ today_record.shift_end|date:"h:i A" }}{% else %}-{% endif %}<br>
+       <b>Worked:</b> {{ today_record.worked_display }}<br>
+       <b>Status:</b> <span class="badge {{ today_record.status_class }}">{{ today_record.status }}</span></p>
+    {% if not today_record.shift_end %}
+    <form method="post" action="{% url 'attendance:end' %}">{% csrf_token %}<button class="btn btn-ghost" type="submit">End Shift</button></form>
+    {% endif %}
+  {% endif %}
+</div>
+
+<div class="card" style="margin-bottom:18px;">
+  <h3>My last 30 days <span>{{ summary.shifts }} shift(s) &middot; {{ summary.hours }} hrs total &middot; {{ summary.avg }} hrs average</span></h3>
+  <table>
+    <thead><tr><th>Date</th><th>Start</th><th>End</th><th>Worked</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in my_records %}
+      <tr>
+        <td>{{ r.date|date:"d M Y" }}</td>
+        <td>{{ r.shift_start|date:"h:i A" }}</td>
+        <td>{% if r.shift_end %}{{ r.shift_end|date:"h:i A" }}{% else %}-{% endif %}</td>
+        <td>{{ r.worked_display }}</td>
+        <td><span class="badge {{ r.status_class }}">{{ r.status }}</span></td>
+      </tr>
+    {% empty %}<tr><td colspan="5">No attendance records yet.</td></tr>{% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if can_view_all %}
+<div class="card">
+  <h3>Team attendance <span>{{ team_date|date:"d M Y" }}</span></h3>
+  <form method="get" class="toolbar">
+    <input type="date" name="date" value="{{ team_date|date:'Y-m-d' }}" style="padding:8px 10px;border:1px solid var(--line-strong);border-radius:6px;">
+    <button class="btn btn-ghost" type="submit">View</button>
+  </form>
+  <table>
+    <thead><tr><th>Employee</th><th>Role</th><th>Start</th><th>End</th><th>Worked</th><th>Status</th></tr></thead>
+    <tbody>
+    {% for r in team %}
+      <tr>
+        <td>{{ r.user.get_full_name|default:r.user.username }}</td>
+        <td>{{ r.user.role_label }}</td>
+        <td>{{ r.shift_start|date:"h:i A" }}</td>
+        <td>{% if r.shift_end %}{{ r.shift_end|date:"h:i A" }}{% else %}-{% endif %}</td>
+        <td>{{ r.worked_display }}</td>
+        <td><span class="badge {{ r.status_class }}">{{ r.status }}</span></td>
+      </tr>
+    {% endfor %}
+    {% for u in absent %}
+      <tr>
+        <td>{{ u.get_full_name|default:u.username }}</td>
+        <td>{{ u.role_label }}</td>
+        <td>-</td><td>-</td><td>-</td>
+        <td><span class="badge b-bad">Absent</span></td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+{% endblock %}

@@ -20,7 +20,7 @@ ROLE_PERMISSIONS = {
     "Manager": [
         "mis.*", "insurers.*", "customers.*", "vehicles.*",
         "inspections.view_*", "inspections.assign_inspection", "inspections.reassign_inspection",
-        "qc.*", "audit.view_auditlog", "mis.export_mis_excel", "mis.export_mis_pdf",
+        "qc.*", "attendance.view_all_attendance", "audit.view_auditlog", "mis.export_mis_excel", "mis.export_mis_pdf",
     ],
     "QC Executive": [
         "inspections.view_*", "qc.*", "mis.view_mis",

@@ -15,6 +15,7 @@ urlpatterns = [
     path("mis/", include("apps.mis.urls_web", namespace="mis")),
     path("inspections/", include("apps.inspections.urls_web", namespace="inspections")),
     path("qc/", include("apps.qc.urls_web", namespace="qc")),
+    path("attendance/", include("apps.attendance.urls_web", namespace="attendance")),
 
     # REST API (versioned; Flutter and any other client consumes only this)
     path("api/v1/", include("apps.api.urls")),

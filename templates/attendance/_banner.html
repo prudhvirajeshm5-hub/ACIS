@@ -1,0 +1,31 @@
+{% if user.is_authenticated %}
+<div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;padding:12px 16px;margin-bottom:16px;border-radius:8px;font-size:13.5px;font-weight:600;
+  {% if not att_today %}background:var(--warn-soft);color:var(--warn);{% elif att_today.shift_end is None %}background:var(--good-soft);color:var(--good);{% else %}background:var(--paper);color:var(--ink-soft);{% endif %}">
+  {% if not att_today %}
+    <span>You have not started your shift today.</span>
+    <form method="post" action="{% url 'attendance:start' %}" style="margin:0;">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="btn btn-primary" type="submit">Start Shift</button>
+    </form>
+  {% elif att_today.shift_end is None %}
+    <span>On shift since {{ att_today.shift_start|date:"h:i A" }} &middot; <span id="att-timer" data-start="{{ att_today.shift_start|date:'c' }}">0h 00m</span></span>
+    <form method="post" action="{% url 'attendance:end' %}" style="margin:0;">
+      {% csrf_token %}<input type="hidden" name="next" value="{{ request.get_full_path }}">
+      <button class="btn btn-ghost" type="submit">End Shift</button>
+    </form>
+    <script>
+      (function () {
+        var el = document.getElementById("att-timer");
+        var start = new Date(el.dataset.start).getTime();
+        function tick() {
+          var m = Math.max(0, Math.floor((Date.now() - start) / 60000));
+          el.textContent = Math.floor(m / 60) + "h " + String(m % 60).padStart(2, "0") + "m";
+        }
+        tick(); setInterval(tick, 30000);
+      })();
+    </script>
+  {% else %}
+    <span>Shift completed today: {{ att_today.shift_start|date:"h:i A" }} to {{ att_today.shift_end|date:"h:i A" }} ({{ att_today.worked_display }})</span>
+  {% endif %}
+</div>
+{% endif %}
