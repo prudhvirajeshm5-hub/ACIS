@@ -85,9 +85,7 @@ function fallbackCopy(text, done) {
 Customer: {{ mis.customer.name }} ({{ mis.customer.mobile }})
 Vehicle: {{ mis.vehicle.registration_number }} - {{ mis.vehicle.make }} {{ mis.vehicle.model }}
 Insurer: {{ mis.insurance_company }}, {{ mis.branch }}
-Field Executive: {{ mis.field_executive|default:"Not assigned" }}
-Inspection: {{ mis.get_inspection_stage_display }}
-QC: {{ mis.get_qc_stage_display }}</pre>
+Location: {{ mis.customer.city|default:"" }}{% if mis.customer.city and mis.customer.district %}, {% endif %}{{ mis.customer.district|default:"" }}{% if mis.customer.district and mis.customer.state %}, {% endif %}{{ mis.customer.state|default:"" }}</pre>
       </td>
     </tr>
     {% empty %}
