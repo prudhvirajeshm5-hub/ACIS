@@ -8,6 +8,7 @@ urlpatterns = [
     path("", views.MISListView.as_view(), name="list"),
     path("create/", views.CreateMISWizardView.as_view(), name="create"),
     path("create/<int:step>/", views.CreateMISWizardView.as_view(), name="create"),
+    path("create-single/", views.CreateMISSinglePageView.as_view(), name="create_single"),
     path("<uuid:pk>/", views.MISDetailView.as_view(), name="detail"),
     path("<uuid:pk>/edit/", views.MISEditView.as_view(), name="edit"),
 ]

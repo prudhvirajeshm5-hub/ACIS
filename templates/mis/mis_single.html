@@ -1,0 +1,58 @@
+{% extends "base/base.html" %}
+{% block page_title %}Create MIS{% endblock %}
+{% block content %}
+<div class="page-head"><div><h1>Create MIS</h1><p>Fill in all sections and submit once.</p></div></div>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+  {% csrf_token %}
+
+  <h3 style="margin-bottom:10px;">Inspection Details</h3>
+  <div class="form-grid">
+    {% for field in mis_form %}
+      <div class="field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h3 style="margin:22px 0 10px;">Customer Details</h3>
+  <div class="form-grid">
+    {% for field in customer_form %}
+      <div class="field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h3 style="margin:22px 0 10px;">Vehicle Details</h3>
+  <div class="form-grid">
+    {% for field in vehicle_form %}
+      <div class="field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <h3 style="margin:22px 0 10px;">Inspection Assignment</h3>
+  <div class="form-grid">
+    {% for field in assignment_form %}
+      <div class="field {% if field.field.widget.input_type == 'textarea' %}full{% endif %}">
+        <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} *{% endif %}</label>
+        {{ field }}
+        {% if field.errors %}<div style="color:var(--bad);font-size:11.5px;margin-top:4px;">{{ field.errors|striptags }}</div>{% endif %}
+      </div>
+    {% endfor %}
+  </div>
+
+  <div class="step-nav">
+    <span></span>
+    <button type="submit" class="btn btn-primary">Create MIS</button>
+  </div>
+</form>
+{% endblock %}

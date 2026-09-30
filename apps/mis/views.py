@@ -203,6 +203,59 @@ class CreateMISWizardView(LoginRequiredMixin, PermissionRequiredMixin, View):
         }
 
 
+class CreateMISSinglePageView(LoginRequiredMixin, PermissionRequiredMixin, View):
+    """All four MIS sections on one page. Same field set and creation logic as
+    the step wizard above, just validated and submitted together."""
+    permission_required = "mis.add_mis"
+
+    def get(self, request):
+        return render(request, "mis/mis_single.html", self._ctx(
+            MISDetailsForm(user=request.user), CustomerForm(), VehicleForm(), AssignmentForm(),
+        ))
+
+    def post(self, request):
+        f1 = MISDetailsForm(request.POST, user=request.user, prefix="mis")
+        f2 = CustomerForm(request.POST, prefix="cust")
+        f3 = VehicleForm(request.POST, prefix="veh")
+        f4 = AssignmentForm(request.POST, prefix="assign")
+
+        if not (f1.is_valid() and f2.is_valid() and f3.is_valid() and f4.is_valid()):
+            messages.error(request, "Please fix the errors below.")
+            return render(request, "mis/mis_single.html", self._ctx(f1, f2, f3, f4))
+
+        try:
+            step2 = f2.cleaned_data
+            step3 = f3.cleaned_data
+            customer, _ = Customer.objects.get_or_create(mobile=step2["mobile"], defaults=step2)
+            vehicle, _ = Vehicle.objects.update_or_create(
+                registration_number=step3["registration_number"].upper().replace(" ", ""),
+                defaults={**step3, "owner": customer},
+            )
+            mis_data = {**f1.cleaned_data, "customer": customer, "vehicle": vehicle}
+            mis = create_mis(data=mis_data, created_by=request.user)
+
+            assignment = f4.cleaned_data
+            if assignment.get("field_executive"):
+                assign_field_executive(
+                    mis=mis, field_executive=assignment["field_executive"],
+                    scheduled_date=assignment.get("scheduled_date"), assigned_by=request.user,
+                )
+                mis.priority = assignment.get("priority", mis.priority)
+                mis.inspection_location = assignment.get("inspection_location", "")
+                mis.save(update_fields=["priority", "inspection_location"])
+
+            messages.success(request, f"{mis.mis_number} created" + (f" and assigned to {mis.field_executive}." if mis.field_executive else "."))
+            return redirect("mis:detail", pk=mis.pk)
+        except Exception as exc:  # noqa: BLE001 — surfaced to the user, also logged
+            messages.error(request, f"Could not create MIS: {exc}")
+            return render(request, "mis/mis_single.html", self._ctx(f1, f2, f3, f4))
+
+    def _ctx(self, f1, f2, f3, f4):
+        if f1.prefix is None:
+            f1.prefix, f2.prefix, f3.prefix, f4.prefix = "mis", "cust", "veh", "assign"
+        return {"mis_form": f1, "customer_form": f2, "vehicle_form": f3, "assignment_form": f4}
+
+
 class MISDetailView(LoginRequiredMixin, TemplateView):
     template_name = "mis/mis_detail.html"
 
