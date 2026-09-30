@@ -1,5 +1,36 @@
 {% extends "base/base.html" %}
-{% block page_title %}All MIS{% endblock %}
+{% block page_title %}All MIS
+<script>
+document.querySelectorAll(".copy-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var pre = this.closest("td").querySelector(".copy-text");
+    var text = pre.textContent;
+    var done = function () {
+      var original = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(function () { btn.textContent = original; }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+});
+function fallbackCopy(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  done();
+}
+</script>
+{% endblock %}
 {% block content %}
 <div class="page-head">
   <div><h1>All MIS</h1><p>{{ page_obj.paginator.count }} record{{ page_obj.paginator.count|pluralize }}</p></div>
@@ -48,7 +79,15 @@
           <a class="link-btn" href="{% url 'mis:detail' mis.pk %}">View</a>
           {% if mis.inspection.pk %}<a class="link-btn" href="{% url 'inspections:workspace' mis.inspection.pk %}">Inspect</a>{% endif %}
           {% if mis.qc_stage == "pending" and perms.qc.add_qcreview %}<a class="link-btn" href="{% url 'qc:review' mis.inspection.pk %}">QC</a>{% endif %}
+          <button type="button" class="link-btn copy-btn">Copy</button>
         </div>
+        <pre class="copy-text" hidden>*{{ mis.mis_number }}*
+Customer: {{ mis.customer.name }} ({{ mis.customer.mobile }})
+Vehicle: {{ mis.vehicle.registration_number }} - {{ mis.vehicle.make }} {{ mis.vehicle.model }}
+Insurer: {{ mis.insurance_company }}, {{ mis.branch }}
+Field Executive: {{ mis.field_executive|default:"Not assigned" }}
+Inspection: {{ mis.get_inspection_stage_display }}
+QC: {{ mis.get_qc_stage_display }}</pre>
       </td>
     </tr>
     {% empty %}
@@ -64,4 +103,35 @@
   {% if page_obj.has_next %}<a class="btn btn-ghost" href="?page={{ page_obj.next_page_number }}">Next</a>{% endif %}
 </div>
 {% endif %}
+
+<script>
+document.querySelectorAll(".copy-btn").forEach(function (btn) {
+  btn.addEventListener("click", function () {
+    var pre = this.closest("td").querySelector(".copy-text");
+    var text = pre.textContent;
+    var done = function () {
+      var original = btn.textContent;
+      btn.textContent = "Copied!";
+      setTimeout(function () { btn.textContent = original; }, 1500);
+    };
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(done).catch(function () { fallbackCopy(text, done); });
+    } else {
+      fallbackCopy(text, done);
+    }
+  });
+});
+function fallbackCopy(text, done) {
+  var ta = document.createElement("textarea");
+  ta.value = text;
+  ta.style.position = "fixed";
+  ta.style.opacity = "0";
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try { document.execCommand("copy"); } catch (e) {}
+  document.body.removeChild(ta);
+  done();
+}
+</script>
 {% endblock %}
