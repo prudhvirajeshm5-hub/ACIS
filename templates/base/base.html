@@ -61,7 +61,7 @@
           <span>All MIS</span>
         </a>
         {% if perms.mis.add_mis %}
-        <a class="navitem {% if request.resolver_match.url_name == 'create' %}active{% endif %}" href="{% url 'mis:create' %}">
+        <a class="navitem {% if request.resolver_match.url_name == 'create' %}active{% endif %}" href="{% url 'mis:create_single' %}">
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg>
           <span>Create MIS</span>
         </a>
