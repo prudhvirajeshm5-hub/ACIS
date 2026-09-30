@@ -9,6 +9,10 @@ class InsuranceCompany(UUIDModel, TimeStampedModel, ActivatableModel):
     gstin = models.CharField(max_length=15, blank=True)
     contact_email = models.EmailField(blank=True)
     contact_phone = models.CharField(max_length=15, blank=True)
+    tat_hours = models.PositiveSmallIntegerField(
+        null=True, blank=True,
+        help_text="Follow-up TAT in hours for this client. Leave blank to use the global default.",
+    )
 
     class Meta:
         ordering = ["name"]

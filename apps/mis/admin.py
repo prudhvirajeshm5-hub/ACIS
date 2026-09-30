@@ -12,3 +12,24 @@ class MISAdmin(admin.ModelAdmin):
     autocomplete_fields = ["insurance_company", "branch", "customer", "vehicle", "field_executive"]
     readonly_fields = ["mis_number", "created_at", "updated_at", "created_by", "updated_by"]
     date_hierarchy = "mis_date"
+
+
+from .models import MISFollowUp, TATSetting  # noqa: E402
+
+
+@admin.register(TATSetting)
+class TATSettingAdmin(admin.ModelAdmin):
+    list_display = ["hours", "updated_at"]
+
+    def has_add_permission(self, request):
+        return not TATSetting.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(MISFollowUp)
+class MISFollowUpAdmin(admin.ModelAdmin):
+    list_display = ["mis", "followed_up_by", "created_at"]
+    readonly_fields = ["mis", "followed_up_by", "remarks", "created_at"]
+    search_fields = ["mis__mis_number"]
